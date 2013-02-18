@@ -23,16 +23,16 @@ package de.triplet.simpleprovider;
 
 
 
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.text.TextUtils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.text.TextUtils;
 
 /**
  * Helper for building selection clauses for {@link SQLiteDatabase}. Each
@@ -90,6 +90,13 @@ public class SelectionBuilder {
         return this;
     }
 
+	/**
+	 * Append the given selection clause to the internal state using the equals
+	 * (=) operator. Each clause is surrounded with parenthesis and combined
+	 * using {@code AND}.
+	 * 
+	 * @author Bjoern Hurling, Christian Becker
+	 */
     public SelectionBuilder whereEquals(String column, String value) {
         return where(column + "=?", value);
     }
