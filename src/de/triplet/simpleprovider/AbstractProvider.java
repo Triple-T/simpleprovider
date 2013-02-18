@@ -2,6 +2,10 @@ package de.triplet.simpleprovider;
 
 
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.ContentProvider;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,15 +18,15 @@ import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mTag;
 
     protected SQLiteDatabase mDatabase;
+
+	protected AbstractProvider() {
+		this("AbstractProvider");
+	}
 
     protected AbstractProvider(String tag) {
         mTag = tag;
