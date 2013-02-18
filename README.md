@@ -8,20 +8,97 @@ Writing Content Providers in Android Applications can be really annoying. In mos
 
 ## Usage
 
-To write your own simple ContentProvider you have to extend the `AbstractProvider` class and implement the abstract method `getAuthority()`:
+SimpleProvider uses annotations on classes and fields to define the database structure. Everything else (database and table creation, URI matching, CRUD operations) is handled by the abstract class `AbstractProvider`.
+
+### Writing your own Provider
+
+To write your own ContentProvider you have to extend the `AbstractProvider` class and implement the abstract method `getAuthority()`:
 
 ```java
 public class BlogProvider extends AbstractProvider {
 
-	protected String getAuthority() {
+  protected String getAuthority() {
 		// return an authority based on a constant or a resource string
 	}
 
 }
 ```
 
-Next you will want to define the tables and their columns that make up your data. To do so, create inner classes and use the provided annotations `@Table` and `@Column`
+Next you will want to define the tables and columns that make up your data. 
+To do so, create inner classes inside your ContentProvider and use the provided annotations `@Table` and `@Column`:
+
+```java
+private static final String POSTS_TABLE = "posts";
+
+@Table(POSTS_TABLE)
+public static final class Posts {
+
+    @Column("INTEGER primary key")
+    public static final String KEY_ID = "_id";
+
+    @Column("TEXT")
+    public static final String KEY_TITLE = "title";
+    
+    @Column("TEXT")
+    public static final String KEY_CONTENT = "content";
+
+    @Column("TEXT")
+    public static final String KEY_AUTHOR = "author";
+
+}
+
+private static final String COMMENTS_TABLE = "comments";
+
+@Table(COMMENTS_TABLE)
+public static final class Comments {
+
+    @Column("INTEGER primary key")
+    public static final String KEY_ID = "_id";
+
+    @Column("INTEGER")
+    public static final String KEY_POST_ID = "post_id";
+    
+    @Column("TEXT")
+    public static final String KEY_CONTENT = "content";
+
+    @Column("TEXT")
+    public static final String KEY_AUTHOR = "author";
+
+}
+
+```
+
+In the example above we create a simple data structure for a blog application that has posts and comments on posts.
+
+The `@Table`-Annotation registers a class as a database table and requires a name for that table. Note, that we used a constant for that name so we may reference it if we need that.
+
+The `@Column`-Annotation defines a database column for that table. It requires a column type like `INTEGER` or `TEXT`. You may also define SQL extras like `default 0` or `primary key` as we used for `Comments.KEY_ID`.
+
+That's all. The `AbstractProvider` will handle the database creation and default CRUD operations for us.
+
+### Accessing your Provider
+
+The above example creates two tables that can be accessed using the standard `insert()`, `query()`, `update()`, `delete()` operations provided by the `ContentResolver` class. `AbstractProvider` automatically handles the standard URIs that directly access a single table.
+
+Based on the example above, and assuming your authority is something like ``com.example.blog.DATA``, then your ContentProvider will automatically handle the following URIs:
+
+```
+com.example.blog.DATA/posts
+com.example.blog.DATA/posts/*
+com.example.blog.DATA/comments
+com.example.blog.DATA/comments/*
+```
 
 ## Extending the default behavior
 
-TODO
+In the example we created a column for comments called `post_id` that will be used as a foreign key to the Posts table.
+However, `BlogProvider` does not yet respond to URIs such as the following:
+```
+com.example.blog.DATA/posts/*/comments
+com.example.blog.DATA/posts/*/comments/*
+```
+To add that feature you have to extend the default behavior by overriding some methods.
+
+```java
+// TODO
+```
