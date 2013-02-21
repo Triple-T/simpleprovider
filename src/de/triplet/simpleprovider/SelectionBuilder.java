@@ -17,11 +17,9 @@ package de.triplet.simpleprovider;
 
 /*
  * Modifications:
- * -Imported from AOSP frameworks/base/core/java/com/android/internal/content
- * -Changed package name
+ * - Imported from AOSP frameworks/base/core/java/com/android/internal/content
+ * - Added whereEquals() method
  */
-
-
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -95,7 +93,8 @@ public class SelectionBuilder {
 	 * (=) operator. Each clause is surrounded with parenthesis and combined
 	 * using {@code AND}.
 	 * 
-	 * @author Bjoern Hurling, Christian Becker
+	 * @author Bjoern Hurling
+	 * @author Christian Becker
 	 */
     public SelectionBuilder whereEquals(String column, String value) {
         return where(column + "=?", value);
