@@ -1,10 +1,5 @@
+
 package de.triplet.simpleprovider;
-
-
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.content.ContentProvider;
 import android.content.ContentValues;
@@ -18,15 +13,19 @@ import android.provider.BaseColumns;
 import android.text.TextUtils;
 import android.util.Log;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mTag;
 
     protected SQLiteDatabase mDatabase;
 
-	protected AbstractProvider() {
-		this("AbstractProvider");
-	}
+    protected AbstractProvider() {
+        this("AbstractProvider");
+    }
 
     protected AbstractProvider(String tag) {
         mTag = tag;
@@ -49,6 +48,20 @@ public abstract class AbstractProvider extends ContentProvider {
 
     protected String getDatabaseFileName() {
         return getClass().getName().toLowerCase() + ".db";
+    }
+
+    /**
+     * Return the schema version of the database (starting at 1).<br>
+     * <br>
+     * This number is used to announce changes to the database schema. If the
+     * database is older, {@link #onUpgrade(SQLiteDatabase, int, int)} will be
+     * used to upgrade the database. If the database is newer,
+     * {@link #onDowngrade(SQLiteDatabase, int, int)} will be used to downgrade
+     * the database.
+     */
+    protected int getSchemaVersion() {
+        /* Override in derived classes */
+        return 1;
     }
 
     @Override
@@ -105,10 +118,8 @@ public abstract class AbstractProvider extends ContentProvider {
 
     private class SQLHelper extends SQLiteOpenHelper {
 
-        private static final int SCHEMA_VERSION = 1;
-
         public SQLHelper(Context context) {
-            super(context, getDatabaseFileName(), null, SCHEMA_VERSION);
+            super(context, getDatabaseFileName(), null, getSchemaVersion());
         }
 
         @Override
@@ -118,9 +129,58 @@ public abstract class AbstractProvider extends ContentProvider {
 
         @Override
         public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            /* Stub. Do nothing. */
+            AbstractProvider.this.onUpgrade(db, oldVersion, newVersion);
         }
 
+        @Override
+        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            AbstractProvider.this.onDowngrade(db, oldVersion, newVersion);
+        }
+
+    }
+
+    /**
+     * Called when the database needs to be upgraded. The implementation should
+     * use this method to drop tables, add tables, or do anything else it needs
+     * to upgrade to the new schema version.
+     * <p>
+     * The SQLite ALTER TABLE documentation can be found <a
+     * href="http://sqlite.org/lang_altertable.html">here</a>. If you add new
+     * columns you can use ALTER TABLE to insert them into a live table. If you
+     * rename or remove columns you can use ALTER TABLE to rename the old table,
+     * then create the new table and then populate the new table with the
+     * contents of the old table.
+     * </p>
+     * <p>
+     * This method executes within a transaction. If an exception is thrown, all
+     * changes will automatically be rolled back.
+     * </p>
+     * 
+     * @param db The database.
+     * @param oldVersion The old database version.
+     * @param newVersion The new database version.
+     */
+    protected void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        /* Override in derived classes */
+    }
+
+    /**
+     * Called when the database needs to be downgraded. This is strictly similar
+     * to {@link #onUpgrade} method, but is called whenever current version is
+     * newer than requested one. However, this method is not abstract, so it is
+     * not mandatory for a customer to implement it. If not overridden, default
+     * implementation will reject downgrade and throws SQLiteException
+     * <p>
+     * This method executes within a transaction. If an exception is thrown, all
+     * changes will automatically be rolled back.
+     * </p>
+     * 
+     * @param db The database.
+     * @param oldVersion The old database version.
+     * @param newVersion The new database version.
+     */
+    protected void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        /* Override in derived classes */
     }
 
     private void createTables(SQLiteDatabase db) {
