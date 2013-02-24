@@ -102,3 +102,37 @@ To add that feature you have to extend the default behavior by overriding some m
 ```java
 // TODO
 ```
+
+## Upgrading the database
+
+We may find ourselves in the situation where we need to change our database schema after we have released our app. Let's assume, we want to add a column to the Posts table that holds the creation date for a post. First of all, we obviously need to update the `Posts` class to define the additional column:
+
+```java
+@Table(POSTS_TABLE)
+public static final class Posts {
+	
+	// ... (previously defined columns)
+	
+	@Column("Integer")
+	public static final String KEY_CREATION_DATE = "creation_date";
+
+}
+```
+
+On a fresh installation, the new column will be created automatically when the database is set up. However, this is not enough if the database has already been created by the system. Instead we need to use the `onUpgrade()` method. The first step is to announce a change to the database schema by overriding the `getSchemaVersion()` method:
+
+```java
+@Override
+protected int getSchemaVersion() {
+	return 2;
+}
+```
+
+Next, we have to override `onUpgrade()` to add the new column to the existing table:
+
+```java
+@Override
+protected void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+	// use db.execSQL() to add and remove columns
+}
+```
