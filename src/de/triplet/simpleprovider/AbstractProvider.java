@@ -73,7 +73,11 @@ public abstract class AbstractProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
         final SelectionBuilder builder = buildBaseQuery(uri);
-        return builder.where(selection, selectionArgs).query(mDatabase, projection, sortOrder);
+        final Cursor cursor =  builder.where(selection, selectionArgs).query(mDatabase, projection, sortOrder);
+        if (cursor != null) {
+            cursor.setNotificationUri(getContext().getContentResolver(), uri);
+        }
+        return cursor;
     }
 
     private final SelectionBuilder buildBaseQuery(Uri uri) {
