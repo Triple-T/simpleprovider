@@ -73,7 +73,8 @@ public abstract class AbstractProvider extends ContentProvider {
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
             String sortOrder) {
         final SelectionBuilder builder = buildBaseQuery(uri);
-        final Cursor cursor =  builder.where(selection, selectionArgs).query(mDatabase, projection, sortOrder);
+        final Cursor cursor = builder.where(selection, selectionArgs).query(mDatabase, projection,
+                sortOrder);
         if (cursor != null) {
             cursor.setNotificationUri(getContext().getContentResolver(), uri);
         }
@@ -185,6 +186,8 @@ public abstract class AbstractProvider extends ContentProvider {
      */
     protected void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         /* Override in derived classes */
+        throw new SQLiteException("Can't downgrade database from version " + oldVersion + " to "
+                + newVersion);
     }
 
     private void createTables(SQLiteDatabase db) {
