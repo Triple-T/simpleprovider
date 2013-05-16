@@ -2,8 +2,11 @@
 package de.triplet.simpleprovider;
 
 import android.content.ContentProvider;
+import android.content.ContentProviderOperation;
+import android.content.ContentProviderResult;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.OperationApplicationException;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -24,11 +27,7 @@ public abstract class AbstractProvider extends ContentProvider {
     protected SQLiteDatabase mDatabase;
 
     protected AbstractProvider() {
-        this("AbstractProvider");
-    }
-
-    protected AbstractProvider(String tag) {
-        mTag = tag;
+        mTag = getClass().getName();
     }
 
     @Override
@@ -119,6 +118,20 @@ public abstract class AbstractProvider extends ContentProvider {
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SelectionBuilder builder = buildBaseQuery(uri);
         return builder.where(selection, selectionArgs).update(mDatabase, values);
+    }
+
+    @Override
+    public final ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
+            throws OperationApplicationException {
+        ContentProviderResult[] result = null;
+        mDatabase.beginTransaction();
+        try {
+            result = super.applyBatch(operations);
+            mDatabase.setTransactionSuccessful();
+        } finally {
+            mDatabase.endTransaction();
+        }
+        return result;
     }
 
     private class SQLHelper extends SQLiteOpenHelper {
