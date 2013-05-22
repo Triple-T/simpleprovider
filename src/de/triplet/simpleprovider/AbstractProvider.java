@@ -4,6 +4,7 @@ package de.triplet.simpleprovider;
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
@@ -102,7 +103,7 @@ public abstract class AbstractProvider extends ContentProvider {
         if (rowId > -1) {
             getContext().getContentResolver().notifyChange(uri, null);
 
-            return Uri.withAppendedPath(uri, String.valueOf(rowId));
+            return ContentUris.withAppendedId(uri, rowId);
         }
 
         return null;
@@ -111,13 +112,26 @@ public abstract class AbstractProvider extends ContentProvider {
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
         final SelectionBuilder builder = buildBaseQuery(uri);
-        return builder.where(selection, selectionArgs).delete(mDatabase);
+        int count = builder.where(selection, selectionArgs).delete(mDatabase);
+
+        if (count > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return count;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
         final SelectionBuilder builder = buildBaseQuery(uri);
-        return builder.where(selection, selectionArgs).update(mDatabase, values);
+        int count = builder.where(selection, selectionArgs).update(mDatabase, values);
+
+        if (count > 0) {
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return count;
+
     }
 
     @Override
