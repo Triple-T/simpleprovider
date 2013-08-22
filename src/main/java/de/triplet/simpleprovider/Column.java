@@ -11,4 +11,6 @@ public @interface Column {
 
     String value();
 
+    int since() default 1;
+
 }

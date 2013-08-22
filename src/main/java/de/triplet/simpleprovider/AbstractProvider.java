@@ -186,6 +186,7 @@ public abstract class AbstractProvider extends ContentProvider {
      */
     protected void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         /* Override in derived classes */
+        upgradeTables(db, oldVersion, newVersion);
     }
 
     /**
@@ -232,6 +233,35 @@ public abstract class AbstractProvider extends ContentProvider {
         }
 
         db.execSQL("CREATE TABLE " + tableName + " (" + TextUtils.join(", ", columns) + ");");
+    }
+
+    private void upgradeTables(SQLiteDatabase db, int oldVersion, int newVersion) {
+        Log.d(mTag, "Upgrading Tables: " + oldVersion + " -> " + newVersion);
+
+        for (Class<?> clazz : getClass().getClasses()) {
+            Table table = clazz.getAnnotation(Table.class);
+            if (table != null) {
+                upgradeTable(db, oldVersion, newVersion, table.value(), clazz);
+            }
+        }
+    }
+
+    private void upgradeTable(SQLiteDatabase db, int oldVersion, int newVersion, String tableName, Class<?> tableClass) {
+        for (Field field : tableClass.getFields()) {
+            Column column = field.getAnnotation(Column.class);
+            if (column != null) {
+                int since = column.since();
+                if (oldVersion < since && newVersion >= since) {
+                    try {
+                        Object value = field.get(null);
+                        Log.d(mTag, "Adding column " + value);
+                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + value + " " + column.value());
+                    } catch (Exception e) {
+                        Log.e(mTag, "Error accessing " + field, e);
+                    }
+                }
+            }
+        }
     }
 
     private class SQLHelper extends SQLiteOpenHelper {

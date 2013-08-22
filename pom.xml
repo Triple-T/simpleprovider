@@ -6,7 +6,7 @@
     <groupId>de.triplet</groupId>
     <artifactId>simpleprovider</artifactId>
     <name>SimpleProvider</name>
-    <version>1.1.0-SNAPSHOT</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <properties>
@@ -28,6 +28,7 @@
 
     <distributionManagement>
         <repository>
+            <id>android_repo</id>
             <url>file:///home/becker/workspace/android_repo/</url>
         </repository>
     </distributionManagement>
