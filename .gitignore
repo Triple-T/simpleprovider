@@ -1,4 +1,6 @@
-gen/
-bin/
-target/
-.settings/
+# gradle
+.idea
+.gradle
+build
+target
+*.iml

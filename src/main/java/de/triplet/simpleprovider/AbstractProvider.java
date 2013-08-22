@@ -4,6 +4,7 @@ package de.triplet.simpleprovider;
 import android.content.ContentProvider;
 import android.content.ContentProviderOperation;
 import android.content.ContentProviderResult;
+import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
@@ -21,10 +22,10 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mTag;
-
     protected SQLiteDatabase mDatabase;
 
     protected AbstractProvider() {
@@ -71,20 +72,34 @@ public abstract class AbstractProvider extends ContentProvider {
 
     @Override
     public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
-            String sortOrder) {
+                        String sortOrder) {
         final SelectionBuilder builder = buildBaseQuery(uri);
         final Cursor cursor = builder.where(selection, selectionArgs).query(mDatabase, projection,
                 sortOrder);
         if (cursor != null) {
-            cursor.setNotificationUri(getContext().getContentResolver(), uri);
+            cursor.setNotificationUri(getContentResolver(), uri);
         }
         return cursor;
     }
 
-    private final SelectionBuilder buildBaseQuery(Uri uri) {
-        SelectionBuilder builder = new SelectionBuilder(uri.getPathSegments().get(0));
+    private ContentResolver getContentResolver() {
+        Context context = getContext();
+        if (context == null) {
+            return null;
+        }
 
-        if (uri.getPathSegments().size() == 2) {
+        return context.getContentResolver();
+    }
+
+    private SelectionBuilder buildBaseQuery(Uri uri) {
+        List<String> pathSegments = uri.getPathSegments();
+        if (pathSegments == null) {
+            return null;
+        }
+
+        SelectionBuilder builder = new SelectionBuilder(pathSegments.get(0));
+
+        if (pathSegments.size() == 2) {
             builder.whereEquals(BaseColumns._ID, uri.getLastPathSegment());
         }
 
@@ -94,14 +109,14 @@ public abstract class AbstractProvider extends ContentProvider {
     @Override
     public Uri insert(Uri uri, ContentValues values) {
         List<String> segments = uri.getPathSegments();
-        if (segments.size() != 1) {
+        if (segments == null || segments.size() != 1) {
             return null;
         }
 
         long rowId = mDatabase.insert(segments.get(0), null, values);
 
         if (rowId > -1) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            getContentResolver().notifyChange(uri, null);
 
             return ContentUris.withAppendedId(uri, rowId);
         }
@@ -115,7 +130,7 @@ public abstract class AbstractProvider extends ContentProvider {
         int count = builder.where(selection, selectionArgs).delete(mDatabase);
 
         if (count > 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            getContentResolver().notifyChange(uri, null);
         }
 
         return count;
@@ -127,7 +142,7 @@ public abstract class AbstractProvider extends ContentProvider {
         int count = builder.where(selection, selectionArgs).update(mDatabase, values);
 
         if (count > 0) {
-            getContext().getContentResolver().notifyChange(uri, null);
+            getContentResolver().notifyChange(uri, null);
         }
 
         return count;
@@ -148,29 +163,6 @@ public abstract class AbstractProvider extends ContentProvider {
         return result;
     }
 
-    private class SQLHelper extends SQLiteOpenHelper {
-
-        public SQLHelper(Context context) {
-            super(context, getDatabaseFileName(), null, getSchemaVersion());
-        }
-
-        @Override
-        public void onCreate(SQLiteDatabase db) {
-            createTables(db);
-        }
-
-        @Override
-        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            AbstractProvider.this.onUpgrade(db, oldVersion, newVersion);
-        }
-
-        @Override
-        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-            AbstractProvider.this.onDowngrade(db, oldVersion, newVersion);
-        }
-
-    }
-
     /**
      * Called when the database needs to be upgraded. The implementation should
      * use this method to drop tables, add tables, or do anything else it needs
@@ -187,8 +179,8 @@ public abstract class AbstractProvider extends ContentProvider {
      * This method executes within a transaction. If an exception is thrown, all
      * changes will automatically be rolled back.
      * </p>
-     * 
-     * @param db The database.
+     *
+     * @param db         The database.
      * @param oldVersion The old database version.
      * @param newVersion The new database version.
      */
@@ -206,8 +198,8 @@ public abstract class AbstractProvider extends ContentProvider {
      * This method executes within a transaction. If an exception is thrown, all
      * changes will automatically be rolled back.
      * </p>
-     * 
-     * @param db The database.
+     *
+     * @param db         The database.
      * @param oldVersion The old database version.
      * @param newVersion The new database version.
      */
@@ -233,20 +225,36 @@ public abstract class AbstractProvider extends ContentProvider {
             if (column != null) {
                 try {
                     columns.add(field.get(null) + " " + column.value());
-                } catch (IllegalArgumentException e) {
-                    e.printStackTrace();
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
+                } catch (Exception e) {
+                    Log.e(mTag, "Error accessing " + field, e);
                 }
             }
         }
 
-        StringBuilder sql = new StringBuilder();
-        sql.append("CREATE TABLE ").append(tableName).append(" (");
-        sql.append(TextUtils.join(", ", columns));
-        sql.append(");");
+        db.execSQL("CREATE TABLE " + tableName + " (" + TextUtils.join(", ", columns) + ");");
+    }
 
-        db.execSQL(sql.toString());
+    private class SQLHelper extends SQLiteOpenHelper {
+
+        public SQLHelper(Context context) {
+            super(context, getDatabaseFileName(), null, getSchemaVersion());
+        }
+
+        @Override
+        public void onCreate(SQLiteDatabase db) {
+            createTables(db);
+        }
+
+        @Override
+        public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            AbstractProvider.this.onUpgrade(db, oldVersion, newVersion);
+        }
+
+        @Override
+        public void onDowngrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+            AbstractProvider.this.onDowngrade(db, oldVersion, newVersion);
+        }
+
     }
 
 }
