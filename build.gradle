@@ -1,27 +1,49 @@
-buildscript {
-    repositories { mavenCentral() }
-    dependencies { classpath 'com.android.tools.build:gradle:0.5.+' }
-}
-apply plugin: 'android-library'
+apply plugin: 'java'
+apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
 }
 dependencies {
-    compile 'junit:junit:4.11'
-    compile 'org.robolectric:robolectric:2.1.1'
-    compile 'org.mockito:mockito-core:1.9.5'
+    compile 'com.google.android:android:4.1.1.4'
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.robolectric:robolectric:2.1.1'
+    testCompile 'org.mockito:mockito-core:1.9.5'
 }
 
-android {
-    compileSdkVersion 18
-    buildToolsVersion '18.0.1'
+jar {
+    it.dependsOn test
+}
 
-    sourceSets {
-        main {
-            java {
-                srcDir 'src/test/java'
+task sourcesJar(type: Jar, dependsOn: classes) {
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    from javadoc.destinationDir
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId 'de.triplet'
+            artifactId 'simpleprovider'
+            version '1.1.0'
+
+            artifact jar
+
+            artifact sourcesJar {
+                classifier 'sources'
             }
+
+            artifact javadocJar {
+                classifier 'javadoc'
+            }
+        }
+    }
+    repositories {
+        maven {
+            url 'file:///home/becker/workspace/android_repo/'
         }
     }
 }
