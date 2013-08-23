@@ -163,6 +163,10 @@ public abstract class AbstractProvider extends ContentProvider {
         return result;
     }
 
+    protected void onCreate(SQLiteDatabase db) {
+        createTables(db);
+    }
+
     /**
      * Called when the database needs to be upgraded. The implementation should
      * use this method to drop tables, add tables, or do anything else it needs
@@ -255,7 +259,7 @@ public abstract class AbstractProvider extends ContentProvider {
                     try {
                         Object value = field.get(null);
                         Log.d(mTag, "Adding column " + value);
-                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + value + " " + column.value());
+                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + value + " " + column.value() + ";");
                     } catch (Exception e) {
                         Log.e(mTag, "Error accessing " + field, e);
                     }
@@ -272,7 +276,7 @@ public abstract class AbstractProvider extends ContentProvider {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
-            createTables(db);
+            AbstractProvider.this.onCreate(db);
         }
 
         @Override

@@ -1,8 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="de.triplet.simpleprovider" >
+          package="de.triplet.simpleprovider">
 
     <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="18" />
+            android:minSdkVersion="8"
+            android:targetSdkVersion="18"/>
+
+    <application/>
 
 </manifest>
