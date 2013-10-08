@@ -1,5 +1,4 @@
 apply plugin: 'java'
-apply plugin: 'maven-publish'
 
 repositories {
     mavenCentral()
@@ -7,37 +6,6 @@ repositories {
 dependencies {
     compile 'com.google.android:android:4.1.1.4'
     testCompile 'junit:junit:4.11'
-    testCompile 'org.robolectric:robolectric:2.1.1'
+    testCompile 'org.robolectric:robolectric:2.2'
     testCompile 'org.mockito:mockito-core:1.9.5'
-}
-
-jar.dependsOn test
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier 'javadoc'
-    from javadoc.destinationDir
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId 'de.triplet'
-            artifactId 'simpleprovider'
-            version '1.1.1-SNAPSHOT'
-
-            artifact jar
-            artifact sourcesJar
-            artifact javadocJar
-        }
-    }
-    repositories {
-        maven {
-            url 'file:///home/becker/workspace/android_repo/'
-        }
-    }
 }
