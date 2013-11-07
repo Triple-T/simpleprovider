@@ -38,7 +38,6 @@ import android.text.TextUtils;
  * thread safe.
  */
 public class SelectionBuilder {
-    private static final String TAG = "SelectionBuilder";
 
     private final String mTable;
 

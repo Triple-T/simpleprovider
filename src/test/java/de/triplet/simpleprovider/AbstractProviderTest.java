@@ -2,6 +2,7 @@ package de.triplet.simpleprovider;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
+import android.os.Build;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(manifest = Config.NONE)
+@Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN_MR2) // FIXME: 4.4 is not yet supported
 public class AbstractProviderTest {
 
     private TestProvider mProvider;
@@ -30,14 +31,14 @@ public class AbstractProviderTest {
     public void onCreate() {
         mProvider.onCreate(mDatabase);
 
-        verify(mDatabase).execSQL("CREATE TABLE foo (bar BAR, late LATE);");
+        verify(mDatabase).execSQL("CREATE TABLE foos (bar TEXT PRIMARY KEY, late FLOAT);");
     }
 
     @Test
     public void onUpgrade() {
         mProvider.onUpgrade(mDatabase, 1, 2);
 
-        verify(mDatabase).execSQL("ALTER TABLE foo ADD COLUMN late LATE;");
+        verify(mDatabase).execSQL("ALTER TABLE foos ADD COLUMN late FLOAT;");
     }
 
     @Test
@@ -48,7 +49,7 @@ public class AbstractProviderTest {
     }
 
     @Test(expected = SQLiteException.class)
-    public void testOnDowngrade() {
+    public void onDowngrade() {
         mProvider.onDowngrade(mDatabase, 2, 1);
     }
 

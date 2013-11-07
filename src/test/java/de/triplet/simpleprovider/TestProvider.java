@@ -7,13 +7,13 @@ public class TestProvider extends AbstractProvider {
         return null;
     }
 
-    @Table("foo")
+    @Table
     public static final class Foo {
 
-        @Column("BAR")
-        public static final String KEY_BAR = "bar";
-        @Column(value = "LATE", since = 2)
-        public static final String KEY_LATE = "late";
+        @Column(value = Column.FieldType.TEXT, primaryKey = true)
+        public static final String BAR = "bar";
+        @Column(value = Column.FieldType.FLOAT, since = 2)
+        public static final String LATE = "late";
 
     }
 

@@ -22,14 +22,18 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unused")
+@SuppressWarnings("unused") // Public API
 public abstract class AbstractProvider extends ContentProvider {
 
-    protected final String mTag;
+    protected final String mLogTag;
     protected SQLiteDatabase mDatabase;
 
     protected AbstractProvider() {
-        mTag = getClass().getName();
+        mLogTag = getClass().getName();
+    }
+
+    protected AbstractProvider(String logTag) {
+        mLogTag = logTag;
     }
 
     @Override
@@ -39,7 +43,7 @@ public abstract class AbstractProvider extends ContentProvider {
             mDatabase = dbHelper.getWritableDatabase();
         } catch (SQLiteException e) {
             mDatabase = null;
-            Log.w(mTag, "Database Opening exception", e);
+            Log.w(mLogTag, "Database Opening exception", e);
         }
 
         return mDatabase != null;
@@ -218,7 +222,7 @@ public abstract class AbstractProvider extends ContentProvider {
         for (Class<?> clazz : getClass().getClasses()) {
             Table table = clazz.getAnnotation(Table.class);
             if (table != null) {
-                createTable(db, table.value(), clazz);
+                createTable(db, Utils.getTableName(clazz, table), clazz);
             }
         }
     }
@@ -229,9 +233,9 @@ public abstract class AbstractProvider extends ContentProvider {
             Column column = field.getAnnotation(Column.class);
             if (column != null) {
                 try {
-                    columns.add(field.get(null) + " " + column.value());
+                    columns.add(Utils.getColumnConstraint(field, column));
                 } catch (Exception e) {
-                    Log.e(mTag, "Error accessing " + field, e);
+                    Log.e(mLogTag, "Error accessing " + field, e);
                 }
             }
         }
@@ -240,12 +244,12 @@ public abstract class AbstractProvider extends ContentProvider {
     }
 
     private void upgradeTables(SQLiteDatabase db, int oldVersion, int newVersion) {
-        Log.d(mTag, "Upgrading Tables: " + oldVersion + " -> " + newVersion);
+        Log.d(mLogTag, "Upgrading Tables: " + oldVersion + " -> " + newVersion);
 
         for (Class<?> clazz : getClass().getClasses()) {
             Table table = clazz.getAnnotation(Table.class);
             if (table != null) {
-                upgradeTable(db, oldVersion, newVersion, table.value(), clazz);
+                upgradeTable(db, oldVersion, newVersion, Utils.getTableName(clazz, table), clazz);
             }
         }
     }
@@ -257,11 +261,9 @@ public abstract class AbstractProvider extends ContentProvider {
                 int since = column.since();
                 if (oldVersion < since && newVersion >= since) {
                     try {
-                        Object value = field.get(null);
-                        Log.d(mTag, "Adding column " + value);
-                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + value + " " + column.value() + ";");
+                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + Utils.getColumnConstraint(field, column) + ";");
                     } catch (Exception e) {
-                        Log.e(mTag, "Error accessing " + field, e);
+                        Log.e(mLogTag, "Error accessing " + field, e);
                     }
                 }
             }
