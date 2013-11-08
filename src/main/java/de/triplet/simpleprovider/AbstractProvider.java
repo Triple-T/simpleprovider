@@ -153,6 +153,7 @@ public abstract class AbstractProvider extends ContentProvider {
 
     }
 
+    @SuppressWarnings("NullableProblems")
     @Override
     public final ContentProviderResult[] applyBatch(ArrayList<ContentProviderOperation> operations)
             throws OperationApplicationException {
@@ -249,7 +250,12 @@ public abstract class AbstractProvider extends ContentProvider {
         for (Class<?> clazz : getClass().getClasses()) {
             Table table = clazz.getAnnotation(Table.class);
             if (table != null) {
-                upgradeTable(db, oldVersion, newVersion, Utils.getTableName(clazz, table), clazz);
+                int since = table.since();
+                if (oldVersion < since && newVersion >= since) {
+                    createTable(db, Utils.getTableName(clazz, table), clazz);
+                } else {
+                    upgradeTable(db, oldVersion, newVersion, Utils.getTableName(clazz, table), clazz);
+                }
             }
         }
     }

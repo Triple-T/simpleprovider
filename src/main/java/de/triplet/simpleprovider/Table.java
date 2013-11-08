@@ -11,4 +11,6 @@ public @interface Table {
 
     String value() default "";
 
+    int since() default 1;
+
 }
