@@ -4,13 +4,13 @@ import android.text.TextUtils;
 
 import java.lang.reflect.Field;
 
-public final class Utils {
+final class Utils {
 
     private Utils() {
         /* Utility classes must not have a public constructor */
     }
 
-    public static String getTableName(Class<?> clazz, Table table) {
+    static String getTableName(Class<?> clazz, Table table) {
         String value = table.value();
         if (TextUtils.isEmpty(value)) {
             return pluralize(clazz.getSimpleName());
@@ -19,7 +19,7 @@ public final class Utils {
         }
     }
 
-    public static String pluralize(String string) {
+    static String pluralize(String string) {
         string = string.toLowerCase();
 
         if (string.endsWith("s")) {
@@ -31,7 +31,7 @@ public final class Utils {
         }
     }
 
-    public static String getColumnConstraint(Field field, Column column) throws IllegalAccessException {
+    static String getColumnConstraint(Field field, Column column) throws IllegalAccessException {
         return field.get(null) + " " + column.value() + (column.primaryKey() ? " PRIMARY KEY" : "");
     }
 

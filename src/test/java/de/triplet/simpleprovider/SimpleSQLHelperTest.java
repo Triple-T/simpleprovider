@@ -7,6 +7,7 @@ import android.os.Build;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
@@ -16,14 +17,14 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(RobolectricTestRunner.class)
 @Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN_MR2) // FIXME: 4.4 is not yet supported
-public class AbstractProviderTest {
+public class SimpleSQLHelperTest {
 
-    private TestProvider mProvider;
+    private TestSQLHelper mProvider;
     private SQLiteDatabase mDatabase;
 
     @Before
     public void setUp() {
-        mProvider = new TestProvider();
+        mProvider = new TestSQLHelper(Robolectric.application);
         mDatabase = mock(SQLiteDatabase.class);
     }
 

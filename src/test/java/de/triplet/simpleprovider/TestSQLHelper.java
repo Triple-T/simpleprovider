@@ -1,10 +1,11 @@
 package de.triplet.simpleprovider;
 
-public class TestProvider extends AbstractProvider {
+import android.content.Context;
 
-    @Override
-    protected String getAuthority() {
-        return null;
+public class TestSQLHelper extends SimpleSQLHelper {
+
+    public TestSQLHelper(Context context) {
+        super(context, "foo", 1);
     }
 
     @Table
