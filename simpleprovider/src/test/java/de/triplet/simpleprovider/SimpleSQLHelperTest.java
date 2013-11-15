@@ -2,7 +2,6 @@ package de.triplet.simpleprovider;
 
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
-import android.os.Build;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +15,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 @RunWith(RobolectricTestRunner.class)
-@Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN_MR2) // FIXME: 4.4 is not yet supported
+@Config(manifest = Config.NONE)
 public class SimpleSQLHelperTest {
 
     private TestSQLHelper mProvider;

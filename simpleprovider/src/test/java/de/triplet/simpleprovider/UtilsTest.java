@@ -1,16 +1,9 @@
 package de.triplet.simpleprovider;
 
-import android.os.Build;
-
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
-import org.robolectric.annotation.Config;
 
 import static org.fest.assertions.api.Assertions.assertThat;
 
-@RunWith(RobolectricTestRunner.class)
-@Config(emulateSdk = Build.VERSION_CODES.JELLY_BEAN_MR2) // FIXME: 4.4 is not yet supported
 public class UtilsTest {
 
     @Test

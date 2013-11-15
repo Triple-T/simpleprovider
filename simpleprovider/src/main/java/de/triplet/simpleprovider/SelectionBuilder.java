@@ -106,7 +106,7 @@ public class SelectionBuilder {
     }
 
     public SelectionBuilder mapToTable(String column, String table) {
-        mProjectionMap.put(column, table + "." + column);
+        mProjectionMap.put(column, table + "" + column);
         return this;
     }
 
