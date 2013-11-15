@@ -47,8 +47,13 @@ public abstract class AbstractProvider extends ContentProvider {
         return getClass().getName().toLowerCase() + ".db";
     }
 
+    /**
+     * Returns the current schema version. This number will be used to automatically trigger
+     * upgrades and downgrades. You may override this method in derived classes if anything has
+     * changed in the schema classes.
+     * @return
+     */
     protected int getSchemaVersion() {
-        /* Override in derived classes */
         return 1;
     }
 
