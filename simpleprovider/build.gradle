@@ -28,12 +28,48 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+def isReleaseBuild() {
+    return version.contains("SNAPSHOT") == false
+}
+
+def nexusUrl;
+def nexusUsername = ""
+def nexusPassword = ""
+
+if (isReleaseBuild()) {
+    nexusUrl =  "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+} else {
+    nexusUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+}
+
+File propFile = file('signing.properties');
+if (propFile.exists()) {
+    propFile.withReader { reader ->
+        def props = new Properties()
+        props.load(reader)
+
+        if (props.containsKey('NEXUS_USERNAME') && props.containsKey('NEXUS_PASSWORD')) {
+            nexusUsername = props['NEXUS_USERNAME']
+            nexusPassword = props['NEXUS_PASSWORD']
+        }
+    }
+}
+
+//println 'URL: ' + nexusUrl
+//println 'Username: ' + nexusUsername
+//println 'Password: ' + nexusPassword
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            groupId 'de.triplet'
+            groupId 'com.github.triplet'
             artifactId 'simpleprovider'
-            version '1.2.1-SNAPSHOT'
+            version '1.0.0-SNAPSHOT'
+
+            pom.withXml {
+                asNode().appendNode('description', 'Create simple ContentProviders for Android Applications reducing boilerplate code')
+                asNode().appendNode('url', 'https://github.com/Triple-T/simpleprovider')
+            }
 
             artifact jar
             artifact sourcesJar
@@ -42,7 +78,11 @@ publishing {
     }
     repositories {
         maven {
-            url 'file:///home/becker/workspace/android_repo/'
+            credentials {
+                username nexusUsername
+                password nexusPassword
+            }
+            url nexusUrl
         }
     }
 }
