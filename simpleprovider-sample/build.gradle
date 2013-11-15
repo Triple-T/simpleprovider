@@ -1,1 +1,29 @@
-// TODO: Sample Android project
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.6.+'
+    }
+}
+
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':simpleprovider')
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19"
+
+    defaultConfig {
+        // TODO what about earlier versions?
+        minSdkVersion 15
+        targetSdkVersion 19
+    }
+}
