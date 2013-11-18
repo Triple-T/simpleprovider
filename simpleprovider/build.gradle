@@ -29,7 +29,7 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 }
 
 def isReleaseBuild() {
-    return version.contains("SNAPSHOT") == false
+    return !version.endsWith("SNAPSHOT")
 }
 
 def nexusUrl;
