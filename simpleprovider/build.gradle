@@ -82,8 +82,8 @@ publishing {
 
                 def scm = xml.appendNode('scm')
                 scm.appendNode('url', 'https://github.com/Triple-T/simpleprovider')
-                scm.appendNode('connection', 'scm:git@github.com/Triple-T/simpleprovider.git')
-                scm.appendNode('developerConnection', 'scm:git@github.com/Triple-T/simpleprovider.git')
+                scm.appendNode('connection', 'scm:git:git@github.com:Triple-T/simpleprovider.git')
+                scm.appendNode('developerConnection', 'scm:git:git@github.com:Triple-T/simpleprovider.git')
 
                 def developers = xml.appendNode('developers')
                 def developerBH = developers.appendNode('developer');
