@@ -37,7 +37,7 @@ def nexusUsername = ""
 def nexusPassword = ""
 
 if (isReleaseBuild()) {
-    nexusUrl =  "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    nexusUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
 } else {
     nexusUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
 }
@@ -69,19 +69,21 @@ publishing {
             pom.withXml {
                 def xml = asNode()
 
+                xml.appendNode('packaging', 'jar')
+                xml.appendNode('name', 'SimpleProvider Library')
                 xml.appendNode('description', 'Create simple ContentProviders for Android Applications reducing boilerplate code')
                 xml.appendNode('url', 'https://github.com/Triple-T/simpleprovider')
-
-                def scm = xml.appendNode('scm')
-                scm.appendNode('url', 'https://github.com/Triple-T/simpleprovider')
-                scm.appendNode('connection', 'scm:git@github.com/Triple-T/simpleprovider.git')
-                scm.appendNode('developerConnection', 'scm:git@github.com/Triple-T/simpleprovider.git')
 
                 def licenses = xml.appendNode('licenses')
                 def license = licenses.appendNode('license');
                 license.appendNode('name', 'The Apache Software License, Version 2.0')
                 license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
                 license.appendNode('distribution', 'repo')
+
+                def scm = xml.appendNode('scm')
+                scm.appendNode('url', 'https://github.com/Triple-T/simpleprovider')
+                scm.appendNode('connection', 'scm:git@github.com/Triple-T/simpleprovider.git')
+                scm.appendNode('developerConnection', 'scm:git@github.com/Triple-T/simpleprovider.git')
 
                 def developers = xml.appendNode('developers')
                 def developerBH = developers.appendNode('developer');
