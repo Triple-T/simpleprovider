@@ -1,5 +1,6 @@
 apply plugin: 'java'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
+apply plugin: 'signing'
 
 repositories {
     maven {
@@ -28,18 +29,29 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
+}
+
+signing {
+    required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
 def isReleaseBuild() {
     return !version.endsWith("SNAPSHOT")
 }
 
 def nexusUrl;
-def nexusUsername = ""
-def nexusPassword = ""
+def nexusUsername = ''
+def nexusPassword = ''
 
 if (isReleaseBuild()) {
-    nexusUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+    nexusUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
 } else {
-    nexusUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+    nexusUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
 }
 
 File propFile = file('signing.properties');
@@ -59,54 +71,57 @@ if (propFile.exists()) {
 //println 'Username: ' + nexusUsername
 //println 'Password: ' + nexusPassword
 
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            groupId 'com.github.triplet'
-            artifactId 'simpleprovider'
-            version '1.0.0-SNAPSHOT'
+group 'com.github.triplet'
+version '1.0.0-SNAPSHOT'
 
-            pom.withXml {
-                def xml = asNode()
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            mavenDeployer {
+                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
 
-                xml.appendNode('packaging', 'jar')
-                xml.appendNode('name', 'SimpleProvider Library')
-                xml.appendNode('description', 'Create simple ContentProviders for Android Applications reducing boilerplate code')
-                xml.appendNode('url', 'https://github.com/Triple-T/simpleprovider')
+                pom.artifactId = 'simpleprovider'
 
-                def licenses = xml.appendNode('licenses')
-                def license = licenses.appendNode('license');
-                license.appendNode('name', 'The Apache Software License, Version 2.0')
-                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
-                license.appendNode('distribution', 'repo')
+                repository(url: nexusUrl) {
+                    authentication(userName: nexusUsername, password: nexusPassword)
+                }
 
-                def scm = xml.appendNode('scm')
-                scm.appendNode('url', 'https://github.com/Triple-T/simpleprovider')
-                scm.appendNode('connection', 'scm:git:git@github.com:Triple-T/simpleprovider.git')
-                scm.appendNode('developerConnection', 'scm:git:git@github.com:Triple-T/simpleprovider.git')
+                pom.project {
+                    packaging 'jar'
+                    name 'SimpleProvider Library'
+                    description 'Create simple ContentProviders for Android Applications reducing boilerplate code'
+                    url 'https://github.com/Triple-T/simpleprovider'
 
-                def developers = xml.appendNode('developers')
-                def developerBH = developers.appendNode('developer');
-                developerBH.appendNode('id', 'bhurling')
-                developerBH.appendNode('name', 'Bjoern Hurling')
+                    licenses {
+                        license {
+                            name 'The Apache Software License, Version 2.0'
+                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                            distribution 'repo'
+                        }
+                    }
 
-                def developerCB = developers.appendNode('developer');
-                developerCB.appendNode('id', 'ChristianBecker')
-                developerCB.appendNode('name', 'Christian Becker')
+                    scm {
+                        url 'https://github.com/Triple-T/simpleprovider'
+                        connection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
+                        developerConnection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
+                    }
+
+                    developers {
+                        developer {
+                            id 'bhurling'
+                            name 'Bjoern Hurling'
+                        }
+                        developer {
+                            id 'ChristianBecker'
+                            name 'Christian Becker'
+                        }
+                    }
+                }
+
+                pom.whenConfigured { pom ->
+                    pom.dependencies.removeAll { it.groupId == 'com.google.android' }
+                }
             }
-
-            artifact jar
-            artifact sourcesJar
-            artifact javadocJar
-        }
-    }
-    repositories {
-        maven {
-            credentials {
-                username nexusUsername
-                password nexusPassword
-            }
-            url nexusUrl
         }
     }
 }
