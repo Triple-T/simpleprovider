@@ -1,7 +1,15 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.3'
+    }
+}
+
 apply plugin: 'java'
 apply plugin: 'jacoco'
-apply plugin: 'maven'
-apply plugin: 'signing'
+apply plugin: 'nexus'
 
 repositories {
     mavenCentral()
@@ -23,109 +31,44 @@ jacocoTestReport {
 
 jar.dependsOn test
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives jar
-    archives sourcesJar
-    archives javadocJar
-}
-
-signing {
-    required { isReleaseBuild() && gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
-
-def isReleaseBuild() {
-    return !version.endsWith("SNAPSHOT")
-}
-
-def nexusUrl;
-def nexusUsername = ''
-def nexusPassword = ''
-
-if (isReleaseBuild()) {
-    nexusUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-} else {
-    nexusUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-}
-
-File propFile = file('signing.properties');
-if (propFile.exists()) {
-    propFile.withReader { reader ->
-        def props = new Properties()
-        props.load(reader)
-
-        if (props.containsKey('NEXUS_USERNAME') && props.containsKey('NEXUS_PASSWORD')) {
-            nexusUsername = props['NEXUS_USERNAME']
-            nexusPassword = props['NEXUS_PASSWORD']
-        }
-    }
-}
-
-//println 'URL: ' + nexusUrl
-//println 'Username: ' + nexusUsername
-//println 'Password: ' + nexusPassword
-
-group 'com.github.triplet'
+group 'com.github.triple'
 version '1.0.0-SNAPSHOT'
 
-afterEvaluate { project ->
-    uploadArchives {
-        repositories {
-            mavenDeployer {
-                beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+modifyPom {
+    project {
+        artifactId 'simpleprovider'
 
-                pom.artifactId = 'simpleprovider'
+        packaging 'jar'
+        name 'SimpleProvider Library'
+        description 'Create simple ContentProviders for Android Applications reducing boilerplate code'
+        url 'https://github.com/Triple-T/simpleprovider'
 
-                repository(url: nexusUrl) {
-                    authentication(userName: nexusUsername, password: nexusPassword)
-                }
-
-                pom.project {
-                    packaging 'jar'
-                    name 'SimpleProvider Library'
-                    description 'Create simple ContentProviders for Android Applications reducing boilerplate code'
-                    url 'https://github.com/Triple-T/simpleprovider'
-
-                    licenses {
-                        license {
-                            name 'The Apache Software License, Version 2.0'
-                            url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                            distribution 'repo'
-                        }
-                    }
-
-                    scm {
-                        url 'https://github.com/Triple-T/simpleprovider'
-                        connection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
-                        developerConnection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
-                    }
-
-                    developers {
-                        developer {
-                            id 'bhurling'
-                            name 'Bjoern Hurling'
-                        }
-                        developer {
-                            id 'ChristianBecker'
-                            name 'Christian Becker'
-                        }
-                    }
-                }
-
-                pom.whenConfigured { pom ->
-                    pom.dependencies.removeAll { it.groupId == 'com.google.android' }
-                }
+        licenses {
+            license {
+                name 'The Apache Software License, Version 2.0'
+                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution 'repo'
             }
         }
+
+        scm {
+            url 'https://github.com/Triple-T/simpleprovider'
+            connection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
+            developerConnection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
+        }
+
+        developers {
+            developer {
+                id 'bhurling'
+                name 'Bjoern Hurling'
+            }
+            developer {
+                id 'ChristianBecker'
+                name 'Christian Becker'
+            }
+        }
+
+        dependencies.removeAll { it.groupId == 'com.google.android' }
     }
+
 }
