@@ -1,6 +1,5 @@
 package de.triplet.simpleprovider;
 
-import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -9,6 +8,7 @@ import android.net.Uri;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.robolectric.Robolectric;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 import org.robolectric.shadows.ShadowContentResolver;
@@ -23,7 +23,6 @@ public class SimpleProviderTest {
 
     private static final String CONTENT_1 = "This is some content we want to store in a post!";
     private static final String CONTENT_2 = "Another post";
-
     TestProvider mProvider;
     ContentResolver mContentResolver;
     Uri mPostsUri;
@@ -32,7 +31,7 @@ public class SimpleProviderTest {
     public void setUp() {
         // fetch references to all the stuff we need like ContentProvider
         mProvider = new TestProvider();
-        mContentResolver = new Activity().getContentResolver();
+        mContentResolver = Robolectric.application.getContentResolver();
         mPostsUri = Uri.parse("content://" + TestProvider.AUTHORITY + "/posts");
 
         // create and register the provider
