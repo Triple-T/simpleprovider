@@ -31,14 +31,14 @@ public class SimpleSQLHelperTest {
     public void onCreate() {
         mProvider.onCreate(mDatabase);
 
-        verify(mDatabase).execSQL("CREATE TABLE foos (bar TEXT PRIMARY KEY, late FLOAT);");
+        verify(mDatabase).execSQL("CREATE TABLE foos (bar TEXT PRIMARY KEY, late FLOAT NOT NULL UNIQUE);");
     }
 
     @Test
     public void onUpgrade() {
         mProvider.onUpgrade(mDatabase, 1, 2);
 
-        verify(mDatabase).execSQL("ALTER TABLE foos ADD COLUMN late FLOAT;");
+        verify(mDatabase).execSQL("ALTER TABLE foos ADD COLUMN late FLOAT NOT NULL UNIQUE;");
     }
 
     @Test

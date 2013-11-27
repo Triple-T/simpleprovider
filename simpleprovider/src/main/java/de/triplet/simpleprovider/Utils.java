@@ -32,7 +32,10 @@ final class Utils {
     }
 
     static String getColumnConstraint(Field field, Column column) throws IllegalAccessException {
-        return field.get(null) + " " + column.value() + (column.primaryKey() ? " PRIMARY KEY" : "");
+        return field.get(null) + " " + column.value()
+                + (column.primaryKey() ? " PRIMARY KEY" : "")
+                + (column.notNull() ? " NOT NULL" : "")
+                + (column.unique() ? " UNIQUE" : "");
     }
 
 }

@@ -13,7 +13,7 @@ public class TestSQLHelper extends SimpleSQLHelper {
 
         @Column(value = Column.FieldType.TEXT, primaryKey = true)
         public static final String BAR = "bar";
-        @Column(value = Column.FieldType.FLOAT, since = 2)
+        @Column(value = Column.FieldType.FLOAT, notNull = true, unique = true, since = 2)
         public static final String LATE = "late";
 
     }

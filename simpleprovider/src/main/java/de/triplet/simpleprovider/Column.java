@@ -13,6 +13,10 @@ public @interface Column {
 
     boolean primaryKey() default false;
 
+    boolean notNull() default false;
+
+    boolean unique() default false;
+
     int since() default 1;
 
     enum FieldType {NULL, INTEGER, FLOAT, TEXT, BLOB}

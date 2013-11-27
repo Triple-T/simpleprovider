@@ -15,6 +15,7 @@ import org.robolectric.shadows.ShadowContentResolver;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
@@ -50,6 +51,7 @@ public class SimpleProviderTest {
         Cursor c = mContentResolver.query(mPostsUri, null, null, null, null);
 
         // Make sure the query has returned (the) one element
+        assertNotNull("Resulting cursor must not be null", c);
         assertEquals("Query should return one post", c.getCount(), 1);
         assertTrue(c.moveToFirst());
         assertEquals("Entry should have the correct content",
@@ -76,6 +78,7 @@ public class SimpleProviderTest {
         Cursor c = mContentResolver.query(mPostsUri, null, selection, selectionArgs, null);
 
         // Make sure the query has returned the correct entity
+        assertNotNull("Resulting cursor must not be null", c);
         assertTrue("We should be able to get the first entry", c.moveToFirst());
         assertEquals("Entry should have the correct content",
                 CONTENT_2, c.getString(c.getColumnIndex(TestProvider.Post.CONTENT)));
