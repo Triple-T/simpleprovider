@@ -18,50 +18,46 @@ To write your own ContentProvider you have to extend the `AbstractProvider` clas
 public class BlogProvider extends AbstractProvider {
 
   protected String getAuthority() {
-		// return an authority based on a constant or a resource string
+		return "com.example.blog";
 	}
 
 }
 ```
 
 Next you will want to define the tables and columns that make up your data. 
-To do so, create inner classes inside your ContentProvider and use the provided annotations `@Table` and `@Column`:
+To do so, create inner classes inside your BlogProvider and use the provided annotations `@Table` and `@Column`:
 
 ```java
-private static final String POSTS_TABLE = "posts";
+@Table
+public class Post {
 
-@Table(POSTS_TABLE)
-public static final class Posts {
-
-    @Column("INTEGER primary key")
+    @Column(Column.FieldType.INTEGER, primaryKey = true)
     public static final String KEY_ID = "_id";
 
-    @Column("TEXT")
+    @Column(Column.FieldType.TEXT)
     public static final String KEY_TITLE = "title";
     
-    @Column("TEXT")
+    @Column(Column.FieldType.TEXT)
     public static final String KEY_CONTENT = "content";
 
-    @Column("TEXT")
+    @Column(Column.FieldType.TEXT)
     public static final String KEY_AUTHOR = "author";
 
 }
 
-private static final String COMMENTS_TABLE = "comments";
+@Table
+public class Comment {
 
-@Table(COMMENTS_TABLE)
-public static final class Comments {
-
-    @Column("INTEGER primary key")
+    @Column(Column.FieldType.INTEGER, primaryKey = true)
     public static final String KEY_ID = "_id";
 
-    @Column("INTEGER")
+    @Column(Column.FieldType.INTEGER)
     public static final String KEY_POST_ID = "post_id";
     
-    @Column("TEXT")
+    @Column(Column.FieldType.TEXT)
     public static final String KEY_CONTENT = "content";
 
-    @Column("TEXT")
+    @Column(Column.FieldType.TEXT)
     public static final String KEY_AUTHOR = "author";
 
 }
@@ -70,9 +66,9 @@ public static final class Comments {
 
 In the example above we create a simple data structure for a blog application that has posts and comments on posts.
 
-The `@Table`-Annotation registers a class as a database table and requires a name for that table. Note, that we used a constant for that name so we may reference it if we need that.
+The `@Table`-Annotation registers a class as a database table. `AbstractProvider` will take care of creating tables called `posts` and `comments`. Note, how we used the plural version of the class name. You can override this behaviour by providing an additional String as the table name.
 
-The `@Column`-Annotation defines a database column for that table. It requires a column type like `INTEGER` or `TEXT`. You may also define SQL extras like `default 0` or `primary key` as we used for `Comments.KEY_ID`.
+The `@Column`-Annotation defines a database column for that table. It requires a column type (One of `Column.FieldType.INTEGER`, `Column.FieldType.TEXT`,  `Column.FieldType.FLOAT` or `Column.FieldType.BLOB`). You may also add SQL extras, e.g. to define a column as the primary key for that table as we did for `Post.KEY_ID`.
 
 That's all. The `AbstractProvider` will handle the database creation and default CRUD operations for us.
 
@@ -89,50 +85,27 @@ com.example.blog.DATA/comments
 com.example.blog.DATA/comments/*
 ```
 
-## Extending the default behavior
-
-In the example we created a column for comments called `post_id` that will be used as a foreign key to the Posts table.
-However, `BlogProvider` does not yet respond to URIs such as the following:
-```
-com.example.blog.DATA/posts/*/comments
-com.example.blog.DATA/posts/*/comments/*
-```
-To add that feature you have to extend the default behavior by overriding some methods.
-
-```java
-// TODO
-```
-
 ## Upgrading the database
 
-We may find ourselves in the situation where we need to change our database schema after we have released our app. Let's assume, we want to add a column to the Posts table that holds the creation date for a post. First of all, we obviously need to update the `Posts` class to define the additional column:
+We may find ourselves in the situation where we need to change our database schema after we have released our app. Let's assume, we want to add a column to the Posts table that holds the creation date for a post. We obviously need to update the `Post` class to define the additional column:
 
 ```java
-@Table(POSTS_TABLE)
-public static final class Posts {
+@Table
+public  class Post {
 	
 	// ... (previously defined columns)
 	
-	@Column("Integer")
+	@Column(Column.FieldType.INTEGER, since = 2)
 	public static final String KEY_CREATION_DATE = "creation_date";
 
 }
 ```
 
-On a fresh installation, the new column will be created automatically when the database is set up. However, this is not enough if the database has already been created by the system. Instead we need to use the `onUpgrade()` method. The first step is to announce a change to the database schema by overriding the `getSchemaVersion()` method:
+Note, how we used the `since`-key of the `@Column`-Annotation to state that this column has been added to the database schema in version 2. To make sure all the upgrade routines are called we also have to override the `getSchemaVersion()` method:
 
 ```java
 @Override
 protected int getSchemaVersion() {
 	return 2;
-}
-```
-
-Next, we have to override `onUpgrade()` to add the new column to the existing table:
-
-```java
-@Override
-protected void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-	// use db.execSQL() to add and remove columns
 }
 ```
