@@ -32,7 +32,7 @@ jacocoTestReport {
 jar.dependsOn test
 
 group 'com.github.triple'
-version '1.0.0-SNAPSHOT'
+version '1.0.0'
 
 modifyPom {
     project {
