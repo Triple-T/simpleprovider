@@ -18,7 +18,7 @@ To write your own ContentProvider you have to extend the `AbstractProvider` clas
 public class BlogProvider extends AbstractProvider {
 
   protected String getAuthority() {
-		return "com.example.blog";
+		return "com.example.blog.DATA";
 	}
 
 }
