@@ -17,9 +17,9 @@ To write your own ContentProvider you have to extend the `AbstractProvider` clas
 ```java
 public class BlogProvider extends AbstractProvider {
 
-  protected String getAuthority() {
-		return "com.example.blog.DATA";
-	}
+    protected String getAuthority() {
+        return "com.example.blog.DATA";
+    }
 
 }
 ```
@@ -91,12 +91,12 @@ We may find ourselves in the situation where we need to change our database sche
 
 ```java
 @Table
-public  class Post {
-	
-	// ... (previously defined columns)
-	
-	@Column(Column.FieldType.INTEGER, since = 2)
-	public static final String KEY_CREATION_DATE = "creation_date";
+public class Post {
+
+    // ... (previously defined columns)
+
+    @Column(Column.FieldType.INTEGER, since = 2)
+    public static final String KEY_CREATION_DATE = "creation_date";
 
 }
 ```
@@ -106,7 +106,7 @@ Note, how we used the `since`-key of the `@Column`-Annotation to state that this
 ```java
 @Override
 protected int getSchemaVersion() {
-	return 2;
+    return 2;
 }
 ```
 
