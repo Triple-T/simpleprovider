@@ -2,6 +2,8 @@
 
 Create simple ContentProviders for Android Applications reducing boilerplate code.
 
+[![Build Status](https://travis-ci.org/Triple-T/simpleprovider.svg?branch=master)](https://travis-ci.org/Triple-T/simpleprovider)
+
 ## Goals
 
 Writing Content Providers in Android Applications can be really annoying. In most cases there is not much complexity in regards of the data. Still, you have to write a great deal of boilerplate code to get going. This library is intended to ease up the creation of very simple Content Providers using annotations.
