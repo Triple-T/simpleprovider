@@ -1,19 +1,10 @@
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.3'
-    }
-}
-
 apply plugin: 'java'
 apply plugin: 'jacoco'
-apply plugin: 'nexus'
 
 repositories {
     mavenCentral()
 }
+
 dependencies {
     compile 'com.google.android:android:4.1.1.4'
 
@@ -23,6 +14,9 @@ dependencies {
     testCompile 'org.easytesting:fest-assert-core:2.0M10'
 }
 
+group = GROUP
+version = VERSION_NAME
+
 jacocoTestReport {
     group = "Reporting"
     description = "Generate Jacoco coverage reports after running tests."
@@ -31,44 +25,32 @@ jacocoTestReport {
 
 jar.dependsOn test
 
-group 'com.github.triple'
-version '1.0.0'
+apply from: 'gradle-mvn-push.gradle'
 
-modifyPom {
-    project {
-        artifactId 'simpleprovider'
+afterEvaluate { project ->
+    uploadArchives {
+        repositories {
+            mavenDeployer {
 
-        packaging 'jar'
-        name 'SimpleProvider Library'
-        description 'Create simple ContentProviders for Android Applications reducing boilerplate code'
-        url 'https://github.com/Triple-T/simpleprovider'
+                pom.project {
+                    developers {
+                        developer {
+                            id 'bhurling'
+                            name 'Bjoern Hurling'
+                        }
+                        developer {
+                            id 'ChristianBecker'
+                            name 'Christian Becker'
+                        }
+                    }
+                }
 
-        licenses {
-            license {
-                name 'The MIT License (MIT)'
-                url 'http://opensource.org/licenses/MIT'
-                distribution 'repo'
+                pom.whenConfigured { pom ->
+                    pom.dependencies = pom.dependencies.findAll { dep ->
+                        dep.scope != 'test' && dep.groupId != 'com.google.android'
+                    }
+                }
             }
         }
-
-        scm {
-            url 'https://github.com/Triple-T/simpleprovider'
-            connection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
-            developerConnection 'scm:git:git@github.com:Triple-T/simpleprovider.git'
-        }
-
-        developers {
-            developer {
-                id 'bhurling'
-                name 'Bjoern Hurling'
-            }
-            developer {
-                id 'ChristianBecker'
-                name 'Christian Becker'
-            }
-        }
-
-        dependencies.removeAll { it.groupId == 'com.google.android' }
     }
-
 }
