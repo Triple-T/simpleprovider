@@ -26,6 +26,7 @@
                 </menu>
             </div>
         </div>
+    </div>
 </header>
 <section id="subtitle">
     <div class="container">
@@ -44,9 +45,9 @@
                 <p>Writing Content Providers in Android Applications can be really annoying. In most cases there is not much complexity in regards of the data. Still, you have to write a great deal of boilerplate code to get going. This library is intended to ease up the creation of very simple Content Providers using annotations.</p>
 
                 <ul>
-                    <li>Define you schema with Annotations.</li>
+                    <li>Define your schema using Annotations.</li>
                     <li>Access your data using automatically generated URIs</li>
-                    <li>Let <strong>simpleprovider</strong> handle simple schema upgrades.</li>
+                    <li>Let <strong>simpleprovider</strong> handle schema upgrades.</li>
                 </ul>
 
                 <h3 id="examples">Examples</h3>
@@ -101,6 +102,53 @@ public class BlogProvider extends AbstractProvider {
     public static final String KEY_AUTHOR = "author";
 
   }
+}
+</pre>
+                <h4>Accessing your Provider</h4>
+                <p>Access your data using a <code>ContentResolver</code>.</p>
+<pre class="prettyprint">
+Uri uri = Uri.parse("content://com.example.blog.DATA/posts");
+getContentResolver().query(uri, projection, selection, selectionArgs, order);
+</pre>
+
+                <p>Or use a <code>CursorLoader</code>.</p>
+<pre class="prettyprint">
+new CursorLoader(context, uri, projection, selection, selectionArgs, order);
+</pre>
+
+                <p><code>AbstractProvider</code> has automatically created the following URIs based on your table classes:</p>
+<pre class="prettyprint">
+content://com.example.blog.DATA/posts
+content://com.example.blog.DATA/posts/*
+content://com.example.blog.DATA/comments
+content://com.example.blog.DATA/comments/*
+</pre>
+
+                <h4>Schema Upgrades</h4>
+                <p>Add fields to your schema classes using the <code>since</code> key.</p>
+
+<pre class="prettyprint">
+  @Table
+  public class Post {
+
+    // ... (previously defined columns)
+
+    @Column(Column.FieldType.INTEGER, since = 2)
+    public static final String KEY_CREATION_DATE = "creation_date";
+
+  }
+</pre>
+                <p>And tell <code>AbstractProvider</code> that we upgraded the schema.</p>
+
+<pre class="prettyprint">
+public class BlogProvider extends AbstractProvider {
+
+    // ...
+
+    @Override
+    protected int getSchemaVersion() {
+        return 2;
+    }
 }
 </pre>
 
