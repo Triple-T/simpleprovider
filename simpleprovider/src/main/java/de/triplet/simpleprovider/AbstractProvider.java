@@ -32,7 +32,18 @@ public abstract class AbstractProvider extends ContentProvider {
     @Override
     public final boolean onCreate() {
         try {
-            SimpleSQLHelper dbHelper = new SimpleSQLHelper(getContext(), getDatabaseFileName(), getSchemaVersion());
+            SimpleSQLHelper dbHelper = new SimpleSQLHelper(getContext(), getDatabaseFileName(), getSchemaVersion()) {
+
+                @Override
+                public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+                    super.onUpgrade(db, oldVersion, newVersion);
+
+                    // Call onUpgrade of outer class so derived classes can extend
+                    // the default behaviour
+                    AbstractProvider.this.onUpgrade(db, oldVersion, newVersion);
+                }
+
+            };
             dbHelper.setTableClass(getClass());
             mDatabase = dbHelper.getWritableDatabase();
             return true;
@@ -41,6 +52,24 @@ public abstract class AbstractProvider extends ContentProvider {
         }
 
         return false;
+    }
+
+    /**
+     * Called when the database needs to be updated and after <code>AbtsractProvider</code> has done its own work.
+     * That is, after creating columns that have been added using the {@link de.triplet.simpleprovider.Column#since()} key.<br />
+     * <br />
+     * For example: Let <code>AbstractProvider</code> automatically create new columns.
+     * Afterwards, do more complicated work like calculating default values or dropping other columns
+     * inside this method.<br />
+     * <br />
+     * This method executes within a transaction. If an exception is thrown, all changes will automatically be rolled back.
+     *
+     * @param db The database.
+     * @param oldVersion The old database version.
+     * @param newVersion The new database version.
+     */
+    protected void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // override if needed
     }
 
     protected String getDatabaseFileName() {
