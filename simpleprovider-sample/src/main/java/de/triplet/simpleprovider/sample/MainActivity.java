@@ -30,7 +30,6 @@ public class MainActivity extends Activity implements LoaderManager.LoaderCallba
 
         // ... do whatever you want with the cursor
 
-        data.close();
     }
 
     @Override
