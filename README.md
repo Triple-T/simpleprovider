@@ -8,6 +8,14 @@ Create simple ContentProviders for Android Applications reducing boilerplate cod
 
 Writing Content Providers in Android Applications can be really annoying. In most cases there is not much complexity in regards of the data. Still, you have to write a great deal of boilerplate code to get going. This library is intended to ease up the creation of very simple Content Providers using annotations.
 
+## Download
+
+Grab the latest version from Maven Central
+
+```
+compile 'com.github.triplet.simpleprovider:simpleprovider:1.0.0'
+```
+
 ## Usage
 
 SimpleProvider uses annotations on classes and fields to define the database structure. Everything else (database and table creation, URI matching, CRUD operations) is handled by the abstract class `AbstractProvider`.
