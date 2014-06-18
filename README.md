@@ -41,7 +41,7 @@ To do so, create inner classes inside your BlogProvider and use the provided ann
 @Table
 public class Post {
 
-    @Column(Column.FieldType.INTEGER, primaryKey = true)
+    @Column(value = Column.FieldType.INTEGER, primaryKey = true)
     public static final String KEY_ID = "_id";
 
     @Column(Column.FieldType.TEXT)
@@ -58,7 +58,7 @@ public class Post {
 @Table
 public class Comment {
 
-    @Column(Column.FieldType.INTEGER, primaryKey = true)
+    @Column(value = Column.FieldType.INTEGER, primaryKey = true)
     public static final String KEY_ID = "_id";
 
     @Column(Column.FieldType.INTEGER)
@@ -105,7 +105,7 @@ public class Post {
 
     // ... (previously defined columns)
 
-    @Column(Column.FieldType.INTEGER, since = 2)
+    @Column(value = Column.FieldType.INTEGER, since = 2)
     public static final String KEY_CREATION_DATE = "creation_date";
 
 }
