@@ -1,4 +1,3 @@
-
 package de.triplet.simpleprovider;
 
 import android.content.ContentProvider;
@@ -30,16 +29,17 @@ public abstract class AbstractProvider extends ContentProvider {
     }
 
     @Override
-    public final boolean onCreate() {
+    public boolean onCreate() {
         try {
-            SimpleSQLHelper dbHelper = new SimpleSQLHelper(getContext(), getDatabaseFileName(), getSchemaVersion()) {
+            SimpleSQLHelper dbHelper = new SimpleSQLHelper(getContext(), getDatabaseFileName(),
+                    getSchemaVersion()) {
 
                 @Override
                 public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
                     super.onUpgrade(db, oldVersion, newVersion);
 
-                    // Call onUpgrade of outer class so derived classes can extend
-                    // the default behaviour
+                    // Call onUpgrade of outer class so derived classes can extend the default
+                    // behaviour
                     AbstractProvider.this.onUpgrade(db, oldVersion, newVersion);
                 }
 
@@ -55,16 +55,18 @@ public abstract class AbstractProvider extends ContentProvider {
     }
 
     /**
-     * Called when the database needs to be updated and after <code>AbtsractProvider</code> has done its own work.
-     * That is, after creating columns that have been added using the {@link de.triplet.simpleprovider.Column#since()} key.<br />
+     * Called when the database needs to be updated and after <code>AbstractProvider</code> has
+     * done its own work. That is, after creating columns that have been added using the
+     * {@link Column#since()} key.<br />
      * <br />
-     * For example: Let <code>AbstractProvider</code> automatically create new columns.
-     * Afterwards, do more complicated work like calculating default values or dropping other columns
-     * inside this method.<br />
+     * For example: Let <code>AbstractProvider</code> automatically create new columns. Afterwards,
+     * do more complicated work like calculating default values or dropping other columns inside
+     * this method.<br />
      * <br />
-     * This method executes within a transaction. If an exception is thrown, all changes will automatically be rolled back.
+     * This method executes within a transaction. If an exception is thrown, all changes will
+     * automatically be rolled back.
      *
-     * @param db The database.
+     * @param db         The database.
      * @param oldVersion The old database version.
      * @param newVersion The new database version.
      */
@@ -80,7 +82,8 @@ public abstract class AbstractProvider extends ContentProvider {
      * Returns the current schema version. This number will be used to automatically trigger
      * upgrades and downgrades. You may override this method in derived classes if anything has
      * changed in the schema classes.
-     * @return
+     *
+     * @return Current schema version.
      */
     protected int getSchemaVersion() {
         return 1;
