@@ -11,5 +11,9 @@ android:
     # All dependencies must be explicitly declared in .travis.yml
     - build-tools-20.0.0
     - android-20
+    - extra-android-m2repository
+
+before_install:
+  - ./scripts/install-support-library.sh
 
 script: ./gradlew check

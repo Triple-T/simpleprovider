@@ -2,6 +2,7 @@ apply plugin: 'java'
 apply plugin: 'jacoco'
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -9,7 +10,7 @@ dependencies {
     compile 'com.google.android:android:4.1.1.4'
 
     testCompile 'junit:junit:4.11'
-    testCompile('org.robolectric:robolectric:2.2') {
+    testCompile('org.robolectric:robolectric:2.3') {
         exclude module: 'classworlds'
         exclude module: 'commons-logging'
         exclude module: 'httpclient'
