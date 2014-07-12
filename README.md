@@ -13,7 +13,7 @@ Writing Content Providers in Android Applications can be really annoying. In mos
 Grab the latest version from Maven Central
 
 ```
-compile 'com.github.triplet.simpleprovider:simpleprovider:1.0.0'
+compile 'com.github.triplet.simpleprovider:simpleprovider:1.0.1'
 ```
 
 ## Usage
