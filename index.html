@@ -160,9 +160,24 @@ public class BlogProvider extends AbstractProvider {
                 <h4>Gradle</h4>
                 <p>simpleprovider is available on Maven Central</p>
                 <pre class="prettyprint">compile 'com.github.triplet.simpleprovider:simpleprovider:<span class="version str">(insert latest version)</span>'</pre>
-            
+
+                <h4>ProGuard</h4>
+                <p>To prevent ProGuard obfuscating anything that define the schema the following <code>keep</code> options should be used.</p>
+<pre class="prettyprint">
+# Keep the nested structure
+-keepattributes InnerClasses
+
+# Don't obfuscate the FieldType enum as those values are added
+# to the CREATE TABLE statement directly
+-keep enum de.triplet.simpleprovider.Column$FieldType { public *; }
+
+# Do not obfuscate anything that is annotated with @Table or @Column
+-keep @de.triplet.simpleprovider.Table class * { @de.triplet.simpleprovider.Column *; }
+</pre>
+
                 <h3 id="license">License</h3>
-            <pre>The MIT License (MIT)
+<pre>
+ The MIT License (MIT)
 
  Copyright (c) 2014 Christian Becker
  Copyright (c) 2014 Björn Hurling
@@ -183,7 +198,8 @@ public class BlogProvider extends AbstractProvider {
  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.</pre>
+ SOFTWARE.
+</pre>
             </div>
             <div class="span3">
                 <div class="content-nav" data-spy="affix" data-offset-top="80">
