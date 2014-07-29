@@ -120,6 +120,30 @@ protected int getSchemaVersion() {
 }
 ```
 
+## Proguard
+
+SimpleProvider uses Annotations and Reflection to create the SQL tables. For example we try to use the pluralized class names of your schema classes in a `CREATE TABLE` statement. Please make sure to add the following lines to your project-specific proguard rules:
+
+```
+# The AbstractProvider searches for inner classes annotated with @Table
+# but proguard flattens nested classes. This line makes sure the structure
+# is preserved.
+-keepattributes InnerClasses
+
+# Don't obfuscate the FieldType enum as those values are added
+# to the CREATE TABLE statement directly
+-keep enum de.triplet.simpleprovider.Column$FieldType { public *; }
+
+# Do not obfuscate anything that is annotated with @Table or @Column
+# so AbstractProvider can automatically generate the table and column names.
+# (This line might be optional if you're fine with a table called 'a' and columns
+# called 'a', 'b', 'c', 'd' and so forth).
+-keep @de.triplet.simpleprovider.Table class * { @de.triplet.simpleprovider.Column *; }
+```
+
+Please note that these rules have not been fully tested so use them at your own risk.
+
+
 ## License
 
 	 The MIT License (MIT)
