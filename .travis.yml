@@ -1,13 +1,15 @@
 language: android
-before_install:
 
-  # workaround for travis-ci/travis-ci#2279
-  - 'sudo mv /usr/local/android-sdk/tools/android-* /usr/local/bin'
-  # Accept all licenses (workaround for travis-ci/travis-ci#2466)
-  # Upgrade 'platform-tools' before 'tools' (workaround for travis-ci/travis-ci#2470)
-  # Run dinstinct 'android update sdk' commands
-  - "android-update-sdk --components='platform-tools,tools' --accept-licenses='.+'"
-  - "android-update-sdk --components='build-tools-20.0.0' --accept-licenses='.+'"
-  - "android-update-sdk --components='android-20' --accept-licenses='.+'"
+android:
+  components:
+    # Ensure that latest Android SDK is used
+    # Note: comment these lines if you prefer to keep using SDK version installed on the Travis VM.
+    - platform-tools
+    - tools
+
+    # Proposal: VM image does not contain any pre-installed component,
+    # All dependencies must be explicitly declared in .travis.yml
+    - build-tools-20.0.0
+    - android-20
 
 script: ./gradlew check
