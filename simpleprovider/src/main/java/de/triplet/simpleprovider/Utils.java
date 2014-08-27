@@ -24,6 +24,14 @@ final class Utils {
 
         if (string.endsWith("s")) {
             return string;
+        } else if (string.endsWith("ay")) {
+            return string.replaceAll("ay$", "ays");
+        } else if (string.endsWith("ey")) {
+            return string.replaceAll("ey$", "eys");
+        } else if (string.endsWith("oy")) {
+            return string.replaceAll("oy$", "oys");
+        } else if (string.endsWith("uy")) {
+            return string.replaceAll("uy$", "uys");
         } else if (string.endsWith("y")) {
             return string.replaceAll("y$", "ies");
         } else {
