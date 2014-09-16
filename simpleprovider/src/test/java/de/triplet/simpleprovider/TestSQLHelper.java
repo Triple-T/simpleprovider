@@ -15,6 +15,8 @@ public class TestSQLHelper extends SimpleSQLHelper {
         public static final String BAR = "bar";
         @Column(value = Column.FieldType.FLOAT, notNull = true, unique = true, since = 2)
         public static final String LATE = "late";
+        @Column(value = Column.FieldType.REAL)
+        public static final String TIME = "time";
 
     }
 

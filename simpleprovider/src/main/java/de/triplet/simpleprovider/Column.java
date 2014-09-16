@@ -19,6 +19,6 @@ public @interface Column {
 
     int since() default 1;
 
-    enum FieldType {NULL, INTEGER, FLOAT, TEXT, BLOB}
+    enum FieldType {NULL, INTEGER, FLOAT, TEXT, BLOB, REAL}
 
 }

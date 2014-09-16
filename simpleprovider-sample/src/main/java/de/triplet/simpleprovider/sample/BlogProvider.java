@@ -49,6 +49,9 @@ public class BlogProvider extends AbstractProvider {
 
         @Column(Column.FieldType.INTEGER)
         public static final String POST_ID = "post_id";
+
+        @Column(Column.FieldType.REAL)
+        public static final String TIMESTAMP = "timestamp";
     }
 
     // we override the schema version so it reflects the changes to our schema. That way

@@ -31,7 +31,7 @@ public class SimpleSQLHelperTest {
     public void onCreate() {
         mProvider.onCreate(mDatabase);
 
-        verify(mDatabase).execSQL("CREATE TABLE foos (bar TEXT PRIMARY KEY, late FLOAT NOT NULL UNIQUE);");
+        verify(mDatabase).execSQL("CREATE TABLE foos (bar TEXT PRIMARY KEY, late FLOAT NOT NULL UNIQUE, time REAL);");
     }
 
     @Test
