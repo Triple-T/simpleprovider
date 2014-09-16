@@ -12,9 +12,10 @@ Writing Content Providers in Android Applications can be really annoying. In mos
 
 Grab the latest version from Maven Central
 
+```groovy
+compile 'com.github.triplet.simpleprovider:simpleprovider:1.1.0'
 ```
-compile 'com.github.triplet.simpleprovider:simpleprovider:1.0.1'
-```
+We introduced a possibly incompatible change in version 1.1.0. See The [Changelog](https://github.com/Triple-T/simpleprovider/blob/master/CHANGELOG.md) for details.
 
 ## Usage
 
