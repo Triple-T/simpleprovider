@@ -8,7 +8,7 @@ _2014-09-16_
  * Added FieldType REAL - Fixes [#12](https://github.com/Triple-T/simpleprovider/issues/12)
  * Fixed pluralization of table names that end on _vowel + y_ - Fixes [#10](https://github.com/Triple-T/simpleprovider/issues/10)
 
-> Note: This change might be incompatible if you previously relied on the wrong pluralization. E.g. if you have defined a schema class called `Journey`, SimpleProvider has created a table called `journeies` for you. You have to make sure to manually set that name again via the `value`-property in the `@Table`-Annotation
+> Note: This change might be incompatible if you previously relied on the wrong pluralization. E.g. if you have defined a schema class called `Journey`, SimpleProvider has created a table called `journeies` for you. As of 1.1.0 the new pluralization will be `journeys`. This could possibly break a schema upgrade in the future, when SimpleProvider looks for a table called `journeys` which doesn't exist. If this affects your code, you have to make sure to manually set that name again via the `value`-property in the `@Table`-Annotation
 
 ## Version 1.0.1
 
