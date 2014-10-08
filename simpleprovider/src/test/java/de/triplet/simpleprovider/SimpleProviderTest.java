@@ -84,4 +84,11 @@ public class SimpleProviderTest {
                 CONTENT_2, c.getString(c.getColumnIndex(TestProvider.Post.CONTENT)));
         assertFalse("There shouldn't be any more entries", c.moveToNext());
     }
+
+    @Test
+    public void testSyncAdapterQuery() {
+        assertFalse("The query parameter should resolve to false", mPostsUri.getBooleanQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER, false));
+        Uri syncUri = mProvider.makeUriFromSyncAdapter(mPostsUri);
+        assertTrue("The query parameter should resolve to true", syncUri.getBooleanQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER, false));
+    }
 }
