@@ -87,8 +87,8 @@ public class SimpleProviderTest {
 
     @Test
     public void testSyncAdapterQuery() {
-        assertFalse("The query parameter should resolve to false", mPostsUri.getBooleanQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER, false));
-        Uri syncUri = mProvider.makeUriFromSyncAdapter(mPostsUri);
-        assertTrue("The query parameter should resolve to true", syncUri.getBooleanQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER, false));
+        assertFalse("The query parameter should resolve to false", mPostsUri.getQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER).equals("1"));
+        Uri syncUri = AbstractProvider.makeUriFromSyncAdapter(mPostsUri);
+        assertTrue("The query parameter should resolve to true", syncUri.getQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER).equals("1"));
     }
 }
