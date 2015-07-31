@@ -3,6 +3,7 @@ package de.triplet.simpleprovider;
 import android.text.TextUtils;
 
 import java.lang.reflect.Field;
+import java.util.Locale;
 
 final class Utils {
 
@@ -20,7 +21,7 @@ final class Utils {
     }
 
     static String pluralize(String string) {
-        string = string.toLowerCase();
+        string = string.toLowerCase(Locale.US);
 
         if (string.endsWith("s")) {
             return string;
