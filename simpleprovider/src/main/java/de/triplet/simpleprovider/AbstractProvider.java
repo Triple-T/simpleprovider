@@ -8,6 +8,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -23,9 +24,13 @@ public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mLogTag;
     protected SQLiteDatabase mDatabase;
+    protected Object mMatcherSynchronizer;
+    protected UriMatcher mMatcher;
+    protected MatchDetail[] mMatchDetails;
 
     protected AbstractProvider() {
         mLogTag = getClass().getName();
+        mMatcherSynchronizer = new Object();
     }
 
     @Override
@@ -52,6 +57,58 @@ public abstract class AbstractProvider extends ContentProvider {
         }
 
         return false;
+    }
+
+    /**
+     * Initializes the matcher, based on the tables contained within the subclass,
+     * also guarantees to have initialized the mTableNames[] array as well.
+     */
+    protected void initializeMatcher() {
+        // initialize the UriMatcher once, use a synchronized block
+        // here, so that subclasses can implement this by static initialization if
+        // they want.
+        synchronized (mMatcherSynchronizer) {
+            if(mMatcher != null) {
+                return;
+            }
+
+            mMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+            List<MatchDetail> details = new ArrayList<>();
+
+            String authority = getAuthority();
+
+            for (Class<?> clazz : getClass().getClasses()) {
+                Table table = clazz.getAnnotation(Table.class);
+                if (table != null) {
+                    String tableName = Utils.getTableName(clazz, table);
+                    String mimeName = Utils.getMimeName(clazz, table);
+
+                    // Add the plural version
+                    mMatcher.addURI(authority, tableName, details.size());
+                    details.add(new MatchDetail(tableName, "vnd.android.cursor.dir/vnd." + getAuthority() + "." + mimeName, false));
+
+                    // Add the singular version
+                    mMatcher.addURI(authority, tableName + "/#", details.size());
+                    details.add(new MatchDetail(tableName, "vnd.android.cursor.item/vnd." + getAuthority() + "." + mimeName, true));
+                }
+            }
+
+            // Populate the rest.
+            mMatchDetails = details.toArray(new MatchDetail[0]);
+        }
+    }
+
+    private static class MatchDetail
+    {
+        public final String tableName;
+        public final String mimeType;
+        public final boolean forceIdColumn;
+
+        public MatchDetail(String tableName, String mimeType, boolean forceIdColumn) {
+            this.tableName = tableName;
+            this.mimeType = mimeType;
+            this.forceIdColumn = forceIdColumn;
+        }
     }
 
     /**
@@ -93,7 +150,15 @@ public abstract class AbstractProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        initializeMatcher();
+
+        int match = mMatcher.match(uri);
+
+        if(match == UriMatcher.NO_MATCH) {
+            return null;
+        }
+
+        return mMatchDetails[match].mimeType;
     }
 
     @Override
@@ -118,14 +183,19 @@ public abstract class AbstractProvider extends ContentProvider {
     }
 
     private SelectionBuilder buildBaseQuery(Uri uri) {
-        List<String> pathSegments = uri.getPathSegments();
-        if (pathSegments == null) {
-            return null;
+        initializeMatcher();
+
+        int match = mMatcher.match(uri);
+
+        if(match == UriMatcher.NO_MATCH) {
+            throw new IllegalArgumentException("Unsupported content uri");
         }
 
-        SelectionBuilder builder = new SelectionBuilder(pathSegments.get(0));
+        MatchDetail detail = mMatchDetails[match];
 
-        if (pathSegments.size() == 2) {
+        SelectionBuilder builder = new SelectionBuilder(detail.tableName);
+
+        if(detail.forceIdColumn) {
             builder.whereEquals(BaseColumns._ID, uri.getLastPathSegment());
         }
 
@@ -134,12 +204,15 @@ public abstract class AbstractProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        List<String> segments = uri.getPathSegments();
-        if (segments == null || segments.size() != 1) {
-            return null;
+        initializeMatcher();
+
+        int match = mMatcher.match(uri);
+
+        if(match == UriMatcher.NO_MATCH) {
+            throw new IllegalArgumentException("Unsupported content uri");
         }
 
-        long rowId = mDatabase.insert(segments.get(0), null, values);
+        long rowId = mDatabase.insert(mMatchDetails[match].tableName, null, values);
 
         if (rowId > -1) {
             getContentResolver().notifyChange(uri, null);

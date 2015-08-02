@@ -1,6 +1,7 @@
 package de.triplet.simpleprovider;
 
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
@@ -83,5 +84,16 @@ public class SimpleProviderTest {
         assertEquals("Entry should have the correct content",
                 CONTENT_2, c.getString(c.getColumnIndex(TestProvider.Post.CONTENT)));
         assertFalse("There shouldn't be any more entries", c.moveToNext());
+    }
+
+    @Test
+    public void testGetType() {
+        String actual = mContentResolver.getType(mPostsUri);
+
+        assertEquals("vnd.android.cursor.dir/vnd." + TestProvider.AUTHORITY + ".post", actual);
+
+        actual = mContentResolver.getType(ContentUris.withAppendedId(mPostsUri , 1));
+
+        assertEquals("vnd.android.cursor.item/vnd." + TestProvider.AUTHORITY + ".post", actual);
     }
 }
