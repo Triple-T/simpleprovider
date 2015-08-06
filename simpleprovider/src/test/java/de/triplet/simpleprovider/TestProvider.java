@@ -12,10 +12,23 @@ public class TestProvider extends AbstractProvider {
     @Table
     public class Post {
 
-        @Column(Column.FieldType.INTEGER)
+        @Column(value = Column.FieldType.INTEGER, primaryKey = true)
         public static final String ID = "_id";
 
         @Column(Column.FieldType.TEXT)
         public static final String CONTENT = "content";
+    }
+
+    @Table
+    public class Comment {
+        @Column(value = Column.FieldType.INTEGER, primaryKey = true)
+        public static final String ID = "_id";
+
+        @Column(Column.FieldType.TEXT)
+        public static final String RESPONSE = "response";
+
+        @Column(value = Column.FieldType.INTEGER, notNull = true)
+        @ForeignKey(references = Post.class)
+        public static final String POST = "post_id";
     }
 }

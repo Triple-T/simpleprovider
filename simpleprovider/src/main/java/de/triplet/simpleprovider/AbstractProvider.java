@@ -16,6 +16,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,16 +86,53 @@ public abstract class AbstractProvider extends ContentProvider {
 
                     // Add the plural version
                     mMatcher.addURI(authority, tableName, details.size());
-                    details.add(new MatchDetail(tableName, "vnd.android.cursor.dir/vnd." + getAuthority() + "." + mimeName, false));
+                    details.add(new MatchDetail(tableName, "vnd.android.cursor.dir/vnd." + getAuthority() + "." + mimeName, null));
 
                     // Add the singular version
                     mMatcher.addURI(authority, tableName + "/#", details.size());
-                    details.add(new MatchDetail(tableName, "vnd.android.cursor.item/vnd." + getAuthority() + "." + mimeName, true));
+                    details.add(new MatchDetail(tableName, "vnd.android.cursor.item/vnd." + getAuthority() + "." + mimeName,  new ForcedColumn(BaseColumns._ID, 1)));
+
+                    // Add the hierarchical versions
+                    for (Field field : clazz.getFields()) {
+
+                        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
+
+                        if(foreignKey == null) {
+                            continue;
+                        }
+
+                        Column column = field.getAnnotation(Column.class);
+                        if(column == null) {
+                            continue;
+                        }
+
+                        Class<?> parent = foreignKey.references();
+
+                        Table parentTable = parent.getAnnotation(Table.class);
+
+                        if(parentTable == null) {
+                            throw new IllegalArgumentException("Parent is not a table!");
+                        }
+
+                        String parentTableName = Utils.getTableName(parent, parentTable);
+
+                        String foreignKeyColumn = null;
+
+                        try {
+                            foreignKeyColumn = field.get(null).toString();
+                        } catch (IllegalAccessException e) {
+                            throw new IllegalArgumentException("Can't read the field name, needs to be static");
+                        }
+
+                        String nestedUri = parentTableName + "/#/" + tableName;
+                        mMatcher.addURI(authority, nestedUri, details.size());
+                        details.add(new MatchDetail(tableName, "vnd.android.cursor.dir/vnd." + getAuthority() + "." + mimeName, new ForcedColumn(foreignKeyColumn, 1)));
+                    }
                 }
             }
 
             // Populate the rest.
-            mMatchDetails = details.toArray(new MatchDetail[0]);
+            mMatchDetails = details.toArray(new MatchDetail[details.size()]);
         }
     }
 
@@ -102,12 +140,22 @@ public abstract class AbstractProvider extends ContentProvider {
     {
         public final String tableName;
         public final String mimeType;
-        public final boolean forceIdColumn;
+        public final ForcedColumn forcedColumn;
 
-        public MatchDetail(String tableName, String mimeType, boolean forceIdColumn) {
+        public MatchDetail(String tableName, String mimeType, ForcedColumn forcedColumn) {
             this.tableName = tableName;
             this.mimeType = mimeType;
-            this.forceIdColumn = forceIdColumn;
+            this.forcedColumn = forcedColumn;
+        }
+    }
+
+    private static class ForcedColumn {
+        public final String columnName;
+        public final int pathSegment;
+
+        private ForcedColumn(String columnName, int pathSegment) {
+            this.columnName = columnName;
+            this.pathSegment = pathSegment;
         }
     }
 
@@ -195,8 +243,9 @@ public abstract class AbstractProvider extends ContentProvider {
 
         SelectionBuilder builder = new SelectionBuilder(detail.tableName);
 
-        if(detail.forceIdColumn) {
-            builder.whereEquals(BaseColumns._ID, uri.getLastPathSegment());
+        List<String> segments = uri.getPathSegments();
+        if(detail.forcedColumn != null) {
+            builder.whereEquals(detail.forcedColumn.columnName, segments.get(detail.forcedColumn.pathSegment));
         }
 
         return builder;
@@ -212,12 +261,26 @@ public abstract class AbstractProvider extends ContentProvider {
             throw new IllegalArgumentException("Unsupported content uri");
         }
 
-        long rowId = mDatabase.insert(mMatchDetails[match].tableName, null, values);
+        MatchDetail detail = mMatchDetails[match];
+
+        if(detail.forcedColumn != null) {
+            // most likely a foreign key, so let's add it to the values.
+            values.put(detail.forcedColumn.columnName, Long.parseLong(uri.getPathSegments().get(detail.forcedColumn.pathSegment)));
+        }
+
+        long rowId = mDatabase.insert(detail.tableName, null, values);
 
         if (rowId > -1) {
-            getContentResolver().notifyChange(uri, null);
+            Uri canonical = Uri.parse("content://" + getAuthority() + "/" + detail.tableName);
 
-            return ContentUris.withAppendedId(uri, rowId);
+            getContentResolver().notifyChange(uri, null);
+            // when these differ it means there are two logical collections that the
+            // content observers may be interested in.
+            if(!canonical.equals(uri)) {
+                getContentResolver().notifyChange(canonical, null);
+            }
+
+            return ContentUris.withAppendedId(canonical, rowId);
         }
 
         return null;
