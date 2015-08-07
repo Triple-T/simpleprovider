@@ -76,7 +76,6 @@ afterEvaluate { project ->
                         }
                     }
                 }
-
             }
         }
     }
@@ -86,18 +85,23 @@ afterEvaluate { project ->
         sign configurations.archives
     }
 
-    task javadocsJar(type: Jar, dependsOn: javadoc) {
-        classifier = 'javadoc'
-        from javadoc.destinationDir
+    task androidJavadocs(type: Javadoc) {
+        source = android.sourceSets.main.java.srcDirs
+        classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     }
 
-    task sourcesJar(type: Jar) {
+    task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+        classifier = 'javadoc'
+        from androidJavadocs.destinationDir
+    }
+
+    task androidSourcesJar(type: Jar) {
         classifier = 'sources'
-        from sourceSets.main.allJava
+        from android.sourceSets.main.java.sourceFiles
     }
 
     artifacts {
-        archives sourcesJar
-        archives javadocsJar
+        archives androidSourcesJar
+        archives androidJavadocsJar
     }
 }
