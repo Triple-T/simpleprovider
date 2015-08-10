@@ -148,7 +148,7 @@ public abstract class AbstractProvider extends ContentProvider {
         long rowId = mDatabase.insert(segments.get(0), null, values);
 
         if (rowId > -1) {
-            getContentResolver().notifyChange(uri, null, !uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER).equals(PARAM_TRUE));
+            getContentResolver().notifyChange(uri, null, !PARAM_TRUE.equals(uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER)));
 
             return ContentUris.withAppendedId(uri, rowId);
         }
@@ -162,7 +162,7 @@ public abstract class AbstractProvider extends ContentProvider {
         int count = builder.where(selection, selectionArgs).delete(mDatabase);
 
         if (count > 0) {
-            getContentResolver().notifyChange(uri, null, !uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER).equals(PARAM_TRUE));
+            getContentResolver().notifyChange(uri, null, !PARAM_TRUE.equals(uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER)));
         }
 
         return count;
@@ -174,7 +174,7 @@ public abstract class AbstractProvider extends ContentProvider {
         int count = builder.where(selection, selectionArgs).update(mDatabase, values);
 
         if (count > 0) {
-            getContentResolver().notifyChange(uri, null, !uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER).equals(PARAM_TRUE));
+            getContentResolver().notifyChange(uri, null, !PARAM_TRUE.equals(uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER)));
         }
 
         return count;
