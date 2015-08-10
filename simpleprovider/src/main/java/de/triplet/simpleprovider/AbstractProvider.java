@@ -24,7 +24,7 @@ public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mLogTag;
     protected SQLiteDatabase mDatabase;
-    protected Object mMatcherSynchronizer;
+    protected final Object mMatcherSynchronizer;
     protected UriMatcher mMatcher;
     protected MatchDetail[] mMatchDetails;
 
