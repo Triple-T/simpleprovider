@@ -57,12 +57,12 @@ public abstract class AbstractProvider extends ContentProvider {
     /**
      * Called when the database needs to be updated and after <code>AbstractProvider</code> has
      * done its own work. That is, after creating columns that have been added using the
-     * {@link Column#since()} key.<br />
-     * <br />
+     * {@link Column#since()} key.<br>
+     * <br>
      * For example: Let <code>AbstractProvider</code> automatically create new columns. Afterwards,
      * do more complicated work like calculating default values or dropping other columns inside
-     * this method.<br />
-     * <br />
+     * this method.<br>
+     * <br>
      * This method executes within a transaction. If an exception is thrown, all changes will
      * automatically be rolled back.
      *
