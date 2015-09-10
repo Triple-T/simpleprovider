@@ -20,6 +20,14 @@ final class Utils {
         }
     }
 
+    static String getMimeName(Class<?> clazz, Table table) {
+        String mimeName = table.mimeSuffix();
+        if(TextUtils.isEmpty(mimeName)) {
+            return clazz.getSimpleName().toLowerCase(java.util.Locale.US);
+        }
+        return mimeName;
+    }
+
     static String pluralize(String string) {
         string = string.toLowerCase(Locale.US);
 

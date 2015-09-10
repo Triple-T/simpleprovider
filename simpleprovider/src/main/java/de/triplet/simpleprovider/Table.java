@@ -13,4 +13,5 @@ public @interface Table {
 
     int since() default 1;
 
+    String mimeSuffix() default "";
 }
