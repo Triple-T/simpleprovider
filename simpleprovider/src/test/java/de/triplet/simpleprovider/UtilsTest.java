@@ -2,6 +2,8 @@ package de.triplet.simpleprovider;
 
 import org.junit.Test;
 
+import java.util.Locale;
+
 import static org.junit.Assert.assertEquals;
 
 public class UtilsTest {
@@ -34,6 +36,21 @@ public class UtilsTest {
 
         expected = "ballantines";
         actual = Utils.pluralize("Ballantines");
+        assertEquals(expected, actual);
+    }
+
+    @Test
+    public void pluralizeWithDifferentLocale() {
+        String expected = "interests";
+        String actual;
+        Locale current = Locale.getDefault();
+        try {
+            Locale.setDefault(Locale.forLanguageTag("tr"));
+            actual = Utils.pluralize("Interest");
+        } finally {
+            Locale.setDefault(current);
+        }
+
         assertEquals(expected, actual);
     }
 
