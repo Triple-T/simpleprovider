@@ -1,9 +1,11 @@
 package de.triplet.simpleprovider;
 
+import android.annotation.TargetApi;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.Build;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -13,6 +15,8 @@ import java.util.ArrayList;
 public class SimpleSQLHelper extends SQLiteOpenHelper {
 
     private Class<?> mTableClass;
+
+    protected final static boolean mForeignKeysEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN;
 
     public SimpleSQLHelper(Context context, String fileName, int schemaVersion) {
         super(context, fileName, null, schemaVersion);
@@ -28,6 +32,15 @@ public class SimpleSQLHelper extends SQLiteOpenHelper {
         } else {
             return getClass();
         }
+    }
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    @Override
+    public void onConfigure(SQLiteDatabase db) {
+        super.onConfigure(db);
+        // N.B. this will only be called on JELLY_BEAN and above,
+        // so the field will match exactly.
+        db.setForeignKeyConstraintsEnabled(mForeignKeysEnabled);
     }
 
     @Override
@@ -62,8 +75,10 @@ public class SimpleSQLHelper extends SQLiteOpenHelper {
         for (Field field : tableClass.getFields()) {
             Column column = field.getAnnotation(Column.class);
             if (column != null) {
+                ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
+
                 try {
-                    columns.add(Utils.getColumnConstraint(field, column));
+                    columns.add(Utils.getColumnConstraint(field, column, mForeignKeysEnabled ? foreignKey : null));
                 } catch (Exception e) {
                     Log.e("SimpleSQLHelper", "Error accessing " + field, e);
                 }
@@ -95,8 +110,9 @@ public class SimpleSQLHelper extends SQLiteOpenHelper {
             if (column != null) {
                 int since = column.since();
                 if (oldVersion < since && newVersion >= since) {
+                    ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
                     try {
-                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + Utils.getColumnConstraint(field, column) + ";");
+                        db.execSQL("ALTER TABLE " + tableName + " ADD COLUMN " + Utils.getColumnConstraint(field, column,  mForeignKeysEnabled ? foreignKey : null) + ";");
                     } catch (Exception e) {
                         Log.e("SimpleSQLHelper", "Error accessing " + field, e);
                     }

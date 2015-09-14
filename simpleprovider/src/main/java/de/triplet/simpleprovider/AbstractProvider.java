@@ -8,6 +8,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.OperationApplicationException;
+import android.content.UriMatcher;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -15,6 +16,7 @@ import android.net.Uri;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,9 +25,13 @@ public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mLogTag;
     protected SQLiteDatabase mDatabase;
+    protected final Object mMatcherSynchronizer;
+    protected UriMatcher mMatcher;
+    protected MatchDetail[] mMatchDetails;
 
     protected AbstractProvider() {
         mLogTag = getClass().getName();
+        mMatcherSynchronizer = new Object();
     }
 
     @Override
@@ -52,6 +58,105 @@ public abstract class AbstractProvider extends ContentProvider {
         }
 
         return false;
+    }
+
+    /**
+     * Initializes the matcher, based on the tables contained within the subclass,
+     * also guarantees to have initialized the mTableNames[] array as well.
+     */
+    protected void initializeMatcher() {
+        // initialize the UriMatcher once, use a synchronized block
+        // here, so that subclasses can implement this by static initialization if
+        // they want.
+        synchronized (mMatcherSynchronizer) {
+            if(mMatcher != null) {
+                return;
+            }
+
+            mMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+            List<MatchDetail> details = new ArrayList<>();
+
+            String authority = getAuthority();
+
+            for (Class<?> clazz : getClass().getClasses()) {
+                Table table = clazz.getAnnotation(Table.class);
+                if (table != null) {
+                    String tableName = Utils.getTableName(clazz, table);
+                    String mimeName = Utils.getMimeName(clazz, table);
+
+                    // Add the plural version
+                    mMatcher.addURI(authority, tableName, details.size());
+                    details.add(new MatchDetail(tableName, "vnd.android.cursor.dir/vnd." + getAuthority() + "." + mimeName, null));
+
+                    // Add the singular version
+                    mMatcher.addURI(authority, tableName + "/#", details.size());
+                    details.add(new MatchDetail(tableName, "vnd.android.cursor.item/vnd." + getAuthority() + "." + mimeName,  new ForcedColumn(BaseColumns._ID, 1)));
+
+                    // Add the hierarchical versions
+                    for (Field field : clazz.getFields()) {
+
+                        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
+
+                        if(foreignKey == null) {
+                            continue;
+                        }
+
+                        Column column = field.getAnnotation(Column.class);
+                        if(column == null) {
+                            continue;
+                        }
+
+                        Class<?> parent = foreignKey.references();
+
+                        Table parentTable = parent.getAnnotation(Table.class);
+
+                        if(parentTable == null) {
+                            throw new IllegalArgumentException("Parent is not a table!");
+                        }
+
+                        String parentTableName = Utils.getTableName(parent, parentTable);
+
+                        String foreignKeyColumn = null;
+
+                        try {
+                            foreignKeyColumn = field.get(null).toString();
+                        } catch (IllegalAccessException e) {
+                            throw new IllegalArgumentException("Can't read the field name, needs to be static");
+                        }
+
+                        String nestedUri = parentTableName + "/#/" + tableName;
+                        mMatcher.addURI(authority, nestedUri, details.size());
+                        details.add(new MatchDetail(tableName, "vnd.android.cursor.dir/vnd." + getAuthority() + "." + mimeName, new ForcedColumn(foreignKeyColumn, 1)));
+                    }
+                }
+            }
+
+            // Populate the rest.
+            mMatchDetails = details.toArray(new MatchDetail[details.size()]);
+        }
+    }
+
+    private static class MatchDetail
+    {
+        public final String tableName;
+        public final String mimeType;
+        public final ForcedColumn forcedColumn;
+
+        public MatchDetail(String tableName, String mimeType, ForcedColumn forcedColumn) {
+            this.tableName = tableName;
+            this.mimeType = mimeType;
+            this.forcedColumn = forcedColumn;
+        }
+    }
+
+    private static class ForcedColumn {
+        public final String columnName;
+        public final int pathSegment;
+
+        private ForcedColumn(String columnName, int pathSegment) {
+            this.columnName = columnName;
+            this.pathSegment = pathSegment;
+        }
     }
 
     /**
@@ -93,7 +198,15 @@ public abstract class AbstractProvider extends ContentProvider {
 
     @Override
     public String getType(Uri uri) {
-        return null;
+        initializeMatcher();
+
+        int match = mMatcher.match(uri);
+
+        if(match == UriMatcher.NO_MATCH) {
+            return null;
+        }
+
+        return mMatchDetails[match].mimeType;
     }
 
     @Override
@@ -118,15 +231,21 @@ public abstract class AbstractProvider extends ContentProvider {
     }
 
     private SelectionBuilder buildBaseQuery(Uri uri) {
-        List<String> pathSegments = uri.getPathSegments();
-        if (pathSegments == null) {
-            return null;
+        initializeMatcher();
+
+        int match = mMatcher.match(uri);
+
+        if(match == UriMatcher.NO_MATCH) {
+            throw new IllegalArgumentException("Unsupported content uri");
         }
 
-        SelectionBuilder builder = new SelectionBuilder(pathSegments.get(0));
+        MatchDetail detail = mMatchDetails[match];
 
-        if (pathSegments.size() == 2) {
-            builder.whereEquals(BaseColumns._ID, uri.getLastPathSegment());
+        SelectionBuilder builder = new SelectionBuilder(detail.tableName);
+
+        List<String> segments = uri.getPathSegments();
+        if(detail.forcedColumn != null) {
+            builder.whereEquals(detail.forcedColumn.columnName, segments.get(detail.forcedColumn.pathSegment));
         }
 
         return builder;
@@ -134,17 +253,34 @@ public abstract class AbstractProvider extends ContentProvider {
 
     @Override
     public Uri insert(Uri uri, ContentValues values) {
-        List<String> segments = uri.getPathSegments();
-        if (segments == null || segments.size() != 1) {
-            return null;
+        initializeMatcher();
+
+        int match = mMatcher.match(uri);
+
+        if(match == UriMatcher.NO_MATCH) {
+            throw new IllegalArgumentException("Unsupported content uri");
         }
 
-        long rowId = mDatabase.insert(segments.get(0), null, values);
+        MatchDetail detail = mMatchDetails[match];
+
+        if(detail.forcedColumn != null) {
+            // most likely a foreign key, so let's add it to the values.
+            values.put(detail.forcedColumn.columnName, Long.parseLong(uri.getPathSegments().get(detail.forcedColumn.pathSegment)));
+        }
+
+        long rowId = mDatabase.insert(detail.tableName, null, values);
 
         if (rowId > -1) {
-            getContentResolver().notifyChange(uri, null);
+            Uri canonical = Uri.parse("content://" + getAuthority() + "/" + detail.tableName);
 
-            return ContentUris.withAppendedId(uri, rowId);
+            getContentResolver().notifyChange(uri, null);
+            // when these differ it means there are two logical collections that the
+            // content observers may be interested in.
+            if(!canonical.equals(uri)) {
+                getContentResolver().notifyChange(canonical, null);
+            }
+
+            return ContentUris.withAppendedId(canonical, rowId);
         }
 
         return null;
