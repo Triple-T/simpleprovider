@@ -23,6 +23,8 @@ public abstract class AbstractProvider extends ContentProvider {
 
     protected final String mLogTag;
     protected SQLiteDatabase mDatabase;
+    public static final String QUERY_CALLER_IS_SYNC_ADAPTER = "caller_is_sync_adapter";
+    private static final String PARAM_TRUE = "1";
 
     protected AbstractProvider() {
         mLogTag = getClass().getName();
@@ -52,6 +54,10 @@ public abstract class AbstractProvider extends ContentProvider {
         }
 
         return false;
+    }
+
+    public static Uri makeUriFromSyncAdapter(Uri uri) {
+        return uri.buildUpon().appendQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER, PARAM_TRUE).build();
     }
 
     /**
@@ -142,7 +148,7 @@ public abstract class AbstractProvider extends ContentProvider {
         long rowId = mDatabase.insert(segments.get(0), null, values);
 
         if (rowId > -1) {
-            getContentResolver().notifyChange(uri, null);
+            getContentResolver().notifyChange(uri, null, !PARAM_TRUE.equals(uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER)));
 
             return ContentUris.withAppendedId(uri, rowId);
         }
@@ -156,7 +162,7 @@ public abstract class AbstractProvider extends ContentProvider {
         int count = builder.where(selection, selectionArgs).delete(mDatabase);
 
         if (count > 0) {
-            getContentResolver().notifyChange(uri, null);
+            getContentResolver().notifyChange(uri, null, !PARAM_TRUE.equals(uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER)));
         }
 
         return count;
@@ -168,7 +174,7 @@ public abstract class AbstractProvider extends ContentProvider {
         int count = builder.where(selection, selectionArgs).update(mDatabase, values);
 
         if (count > 0) {
-            getContentResolver().notifyChange(uri, null);
+            getContentResolver().notifyChange(uri, null, !PARAM_TRUE.equals(uri.getQueryParameter(QUERY_CALLER_IS_SYNC_ADAPTER)));
         }
 
         return count;

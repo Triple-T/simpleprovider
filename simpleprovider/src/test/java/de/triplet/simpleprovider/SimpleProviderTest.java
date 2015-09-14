@@ -16,6 +16,7 @@ import org.robolectric.shadows.ShadowContentResolver;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(RobolectricTestRunner.class)
@@ -83,5 +84,12 @@ public class SimpleProviderTest {
         assertEquals("Entry should have the correct content",
                 CONTENT_2, c.getString(c.getColumnIndex(TestProvider.Post.CONTENT)));
         assertFalse("There shouldn't be any more entries", c.moveToNext());
+    }
+
+    @Test
+    public void testSyncAdapterQuery() {
+        assertNull("The query parameter should resolve to false", mPostsUri.getQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER));
+        Uri syncUri = AbstractProvider.makeUriFromSyncAdapter(mPostsUri);
+        assertTrue("The query parameter should resolve to true", syncUri.getQueryParameter(TestProvider.QUERY_CALLER_IS_SYNC_ADAPTER).equals("1"));
     }
 }
